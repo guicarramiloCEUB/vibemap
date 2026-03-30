@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with PostGIS extension
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: vibemap_db
+    environment:
+      POSTGRES_DB: vibemap_db
+      POSTGRES_USER: vibemap_user
+      POSTGRES_PASSWORD: vibemap_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vibemap_user -d vibemap_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vibemap_network
+
+  # Redis for Channels and Celery
+  redis:
+    image: redis:7-alpine
+    container_name: vibemap_redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vibemap_network
+
+  # Optional: Adminer for database management UI
+  adminer:
+    image: adminer
+    container_name: vibemap_adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - vibemap_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  vibemap_network:
+    driver: bridge
