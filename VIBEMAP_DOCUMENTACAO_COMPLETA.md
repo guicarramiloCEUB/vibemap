@@ -1,5 +1,5 @@
 # VibeMap MVP — Documentação Completa
-**Versão:** 1.0 — Draft | **Data:** Março 2026 | **Owner:** Parada
+**Versão:** 1.0 — Draft | **Data:** Março 2026 
 
 ---
 
@@ -20,9 +20,6 @@
 
 ### Visão do Produto
 VibeMap é um mapa social de eventos em tempo real que combina eventos de parceiros comerciais (bares, casas de festa, shows) com eventos orgânicos relatados pelos próprios usuários — funcionando como o Waze para a vida noturna e cultural urbana. O usuário abre o app e vê instantaneamente o que está acontecendo ao seu redor agora.
-
-### Critério de Sucesso do MVP
-Validar o comportamento de uso com 500 usuários beta em ambiente real, medindo ativação, retenção D1 e engajamento com o sistema de confirmações, sem qualquer monetização nessa fase.
 
 ---
 
@@ -92,7 +89,7 @@ O espaço de mapa social com UGC de eventos não tem player dominante no Brasil.
 - Ao tocar em um pin, abre um pop-up com os detalhes do evento
 
 #### H2 — Relato de Evento Orgânico
-> "Como usuário que chegou num bar com fila enorme, quero reportar isso no mapa em menos de 30 segundos para que outras pessoas saibam."
+> "Como usuário que chegou num bar, quero reportar isso no mapa em menos de 30 segundos para que outras pessoas saibam."
 
 **Critérios de aceitação:**
 - Fluxo de criação com no máximo 4 campos: tipo de evento, descrição curta, localização (automática ou manual) e duração estimada

@@ -160,7 +160,7 @@ python manage.py runserver 0.0.0.0:8000
 # Access Django Admin: http://localhost:8000/admin
 # Access API: http://localhost:8000/api
 ```
-
+CELERY POR ENQUANTO NAO SERA UTILZIADO
 ### Backend (Celery - in separate terminal)
 ```bash
 source .venv/bin/activate
@@ -353,8 +353,3 @@ Backend deployment is handled by Railway (see main README for credentials). Mobi
 - [Django Channels](https://channels.readthedocs.io/)
 - [Expo Documentation](https://docs.expo.dev/)
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-
----
-
-**Last Updated:** March 2026  
-**Maintained by:** Development Team

@@ -220,8 +220,3 @@ make run-mobile
 - **Database:** ⏳ Needs PostgreSQL start
 - **Cache:** ⏳ Needs Redis start
 
-**Total time to ready:** ~15 min (with Docker) or ~30 min (manual install)
-
----
-
-**Last Updated:** March 29, 2026

@@ -247,36 +247,10 @@ eas submit --platform android
 
 ---
 
-## 📈 Project Metrics
-
-**MVP Success Criteria:**
-- 500 beta users
-- 40% activation (created ≥1 event)
-- 30% Day-1 retention
-- 3 confirmations per event (average)
-
-**North Star Metric:** Events confirmed per day
-
----
-
-## 📅 Development Timeline
-
-- **Month 1:** Infrastructure & Authentication
-- **Month 2:** Core Features (Map, Event Creation, Confirmations)
-- **Month 3:** Partner Panel & WebSocket Integration
-- **Month 4:** Polish, Testing, Beta Launch
-
----
-
 ## 👥 Team
 
-**Solo Developer:** Parada
+**Guilherme Carramilo**
 
----
-
-## 📝 License
-
-Proprietary - VibeMap MVP 2026
 
 ---
 
@@ -289,12 +263,3 @@ Proprietary - VibeMap MVP 2026
 5. Push & create PR
 
 ---
-
-## 📞 Questions?
-
-Check [DEVELOPMENT.md](DEVELOPMENT.md) for detailed setup guide and troubleshooting.
-
----
-
-**Last Updated:** March 29, 2026  
-**Current Status:** Active Development (MVP Phase)

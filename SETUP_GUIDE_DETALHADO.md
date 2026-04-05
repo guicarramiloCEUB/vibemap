@@ -1,7 +1,5 @@
 # 📚 VibeMap Setup - Guia Detalhado Completo
 
-**Data:** 29 de Março de 2026  
-**Desenvolvedor:** Parada  
 **Objetivo:** Documentar TUDO que foi feito na configuração inicial do VibeMap
 
 ---
@@ -1031,33 +1029,6 @@ vibemap/
 └── .gitignore                           ← ✅ Melhorado
 ```
 
----
-
-## 🚀 Próximos Passos {#proximospassos}
-
-### Imediato (agora):
-
-1. **Instalar Docker:**
-   ```bash
-   sudo apt install docker.io docker-compose
-   # ou use Docker Desktop se Windows/Mac
-   ```
-
-2. **Iniciar PostgreSQL + Redis:**
-   ```bash
-   docker-compose up -d
-   ```
-
-3. **Validar conexão:**
-   ```bash
-   docker-compose ps
-   # Ambos devem estar "Up"
-   ```
-
-4. **Rodar migrations:**
-   ```bash
-   cd backend && python manage.py migrate && cd ..
-   ```
 
 ### Curto prazo (dias 1-7):
 
@@ -1127,8 +1098,3 @@ vibemap/
 **Tempo total gasto:** ~2 horas  
 **Resultado:** Projeto completamente funcional apenas faltando DB  
 **Qualidade:** Pronto para produção (com melhores práticas)
-
----
-
-**Última atualização:** 29 de Março de 2026  
-**Desenvolvedor:** Parada
