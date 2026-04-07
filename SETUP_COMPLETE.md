@@ -2,6 +2,8 @@
 
 ---
 
+oi
+
 ## 📊 Status Geral
 
 | Component | Status | Versão |
