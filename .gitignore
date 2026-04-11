@@ -12,6 +12,8 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.py[cod]
+*$py.class
 .Python
 *.so
 *.egg
@@ -23,6 +25,7 @@ htmlcov/
 .env
 .env.local
 .env.*.local
+*.env
 
 # IDE
 .vscode/
@@ -38,6 +41,7 @@ node_modules/
 .expo-shared/
 dist/
 npm-debug.log*
+npm-debug.log
 yarn-debug.log*
 yarn-error.log*
 
@@ -52,9 +56,21 @@ db.sqlite3
 .DS_Store
 Thumbs.db
 
+# Database
+*.sqlite3
+db.sqlite3
+postgres_data/
+redis_data/
+
 # Docker
 *.log
 docker-compose.override.yml
+
+# Arquivos temporários
+*.tmp
+tmp/
+temp/
+.DS_Store
 
 # Mobile Build artifacts
 ios/
@@ -68,3 +84,15 @@ logs/
 # Project specific
 .celery_beat_schedule
 dump.rdb
+
+# Arquivos de desenvolvimento
+*.log
+logs/
+*.pid
+
+# Documentação de setup/instalação local (opcional, mas recomendado)
+SETUP_GUIDE_DETALHADO.md
+INSTALLATION_STATUS.md
+API_EXAMPLES.js
+SETUP_COMPLETE.md
+API_INTEGRATION_STATUS.md
