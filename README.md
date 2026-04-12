@@ -40,6 +40,49 @@ npm start
 
 ---
 
+## 🌿 Git Branches & Contribution
+
+We follow **Git Flow** for development:
+
+| Branch | Purpose |
+|--------|---------|
+| **main** | Production - releases only |
+| **develop** | Staging - all features integrate here |
+| **feature/\*** | New features (base: develop) |
+| **fix/\*** | Bug fixes (base: develop) |
+| **hotfix/\*** | Emergency fixes (base: main) |
+
+### How to Contribute
+
+1. **Fork or Clone**
+   ```bash
+   git clone https://github.com/seu-usuario/vibemap.git
+   cd vibemap
+   git checkout develop
+   ```
+
+2. **Create Feature Branch**
+   ```bash
+   git checkout -b feature/your-feature
+   # or
+   git checkout -b fix/bug-name
+   ```
+
+3. **Make Changes & Commit**
+   ```bash
+   git add .
+   git commit -m "feat: clear description of change"
+   git push origin feature/your-feature
+   ```
+
+4. **Open Pull Request to `develop`**
+   - Never PR directly to `main`
+   - All PRs to `develop` need review
+
+**For detailed contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md)**
+
+---
+
 ## 📋 Project Structure
 
 ```
@@ -196,6 +239,7 @@ pytest backend/users/tests.py -v
 
 ## 📚 Documentation
 
+- [**CONTRIBUTING.md**](CONTRIBUTING.md) - How to contribute, Git Flow guide
 - [**DEVELOPMENT.md**](DEVELOPMENT.md) - Detailed setup & troubleshooting guide
 - [**VIBEMAP_DOCUMENTACAO_COMPLETA.md**](VIBEMAP_DOCUMENTACAO_COMPLETA.md) - Full PRD + Technical Stack documentation
 - [Django Documentation](https://docs.djangoproject.com/)

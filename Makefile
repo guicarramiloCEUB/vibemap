@@ -1,4 +1,4 @@
-.PHONY: help setup install migrate run-django run-celery run-mobile clean format lint test help
+.PHONY: help setup install migrate run-django run-celery run-mobile clean format lint test docker-up docker-down docker-restart docker-logs docker-status
 
 # Variables
 VENV_DIR := .venv
@@ -13,6 +13,13 @@ help:
 	@echo "  make setup              Create virtual environment and install all dependencies"
 	@echo "  make install            Install/update Python dependencies"
 	@echo "  make install-mobile     Install mobile (npm) dependencies"
+	@echo ""
+	@echo "Docker Infrastructure:"
+	@echo "  make docker-up          Start Docker containers (PostgreSQL, Redis, Adminer)"
+	@echo "  make docker-down        Stop all Docker containers"
+	@echo "  make docker-restart     Restart Docker containers"
+	@echo "  make docker-logs        Show Docker logs"
+	@echo "  make docker-status      Show Docker containers status"
 	@echo ""
 	@echo "Database:"
 	@echo "  make migrate            Run Django migrations"
@@ -37,7 +44,7 @@ help:
 	@echo "  make logs               Show recent logs"
 	@echo ""
 
-setup: create-venv install migrate
+setup: create-venv install migrate docker-up
 	@echo "✅ Setup complete! Run 'make run-django' to start"
 
 create-venv:
@@ -67,6 +74,36 @@ migrate:
 createsuperuser:
 	@echo "👤 Creating superuser..."
 	$(MANAGE) createsuperuser
+
+docker-up:
+	@echo "🐳 Starting Docker containers..."
+	docker compose up -d
+	@echo "✅ Containers started:"
+	@echo "   - PostgreSQL (port 5432)"
+	@echo "   - Redis (port 6379)"
+	@echo "   - Adminer (http://localhost:8080)"
+	@sleep 2
+	docker compose ps
+
+docker-down:
+	@echo "🛑 Stopping Docker containers..."
+	docker compose down
+	@echo "✅ Containers stopped"
+
+docker-restart:
+	@echo "🔄 Restarting Docker containers..."
+	docker compose restart
+	@echo "✅ Containers restarted"
+	@sleep 2
+	docker compose ps
+
+docker-logs:
+	@echo "📋 Docker logs (last 50 lines)..."
+	docker compose logs --tail=50 -f
+
+docker-status:
+	@echo "📊 Docker containers status:"
+	docker compose ps
 
 run-django:
 	@echo "🚀 Starting Django development server on http://localhost:8000"
