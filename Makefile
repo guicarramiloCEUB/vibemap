@@ -106,8 +106,8 @@ docker-status:
 	docker compose ps
 
 run-django:
-	@echo "🚀 Starting Django development server on http://localhost:8000"
-	$(MANAGE) runserver 0.0.0.0:8000
+	@echo "🚀 Starting Django ASGI server with Daphne on http://0.0.0.0:8000"
+	@cd backend && ../$(VENV_DIR)/bin/daphne -b 0.0.0.0 -p 8000 core.asgi:application
 
 run-celery:
 	@echo "⚙️  Starting Celery worker..."
