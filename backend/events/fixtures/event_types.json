@@ -1,0 +1,42 @@
+[
+  {
+    "model": "events.eventtype",
+    "pk": 1,
+    "fields": {
+      "name": "Show",
+      "description": "Shows, concerts e apresentações ao vivo"
+    }
+  },
+  {
+    "model": "events.eventtype",
+    "pk": 2,
+    "fields": {
+      "name": "Festa",
+      "description": "Festas, baladas e eventos noturnos"
+    }
+  },
+  {
+    "model": "events.eventtype",
+    "pk": 3,
+    "fields": {
+      "name": "Evento Corporativo",
+      "description": "Eventos corporativos, conferências e seminários"
+    }
+  },
+  {
+    "model": "events.eventtype",
+    "pk": 4,
+    "fields": {
+      "name": "Esporte",
+      "description": "Eventos esportivos e competições"
+    }
+  },
+  {
+    "model": "events.eventtype",
+    "pk": 5,
+    "fields": {
+      "name": "Cultura",
+      "description": "Eventos culturais, teatro e exposições"
+    }
+  }
+]

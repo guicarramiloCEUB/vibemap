@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'channels',
     'corsheaders',
     'users',
+    'events',
 ]
 
 REST_FRAMEWORK = {
