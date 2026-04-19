@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import api from '../services/api';
+import AuthService from '../services/auth';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -12,17 +12,23 @@ export default function LoginScreen({ navigation }) {
       Alert.alert('Erro', 'Preencha todos os campos');
       return;
     }
+    
     setLoading(true);
     try {
-      const response = await api.post('users/login/', { email, password: senha });
-      console.log('✅ Login bem-sucedido, Token:', response.data.access?.substring(0, 20) + '...');
-      Alert.alert('Sucesso', 'Login realizado!');
+      const result = await AuthService.login(email, senha);
+      
+      if (result.success) {
+        console.log('✅ Login bem-sucedido!');
+        console.log('🔐 Access Token:', result.tokens.access.substring(0, 20) + '...');
+        Alert.alert('Sucesso', 'Login realizado!', [
+          { text: 'OK', onPress: () => navigation.navigate('MainApp') }
+        ]);
+      } else {
+        Alert.alert('Erro', `Falha no login: ${result.error || 'Email ou senha inválidos'}`);
+      }
     } catch (error) {
-      console.error('❌ Erro no login:', error.response?.data || error.message);
-      const errorMsg = error.response?.data?.detail 
-        || error.response?.data?.email?.[0]
-        || error.message;
-      Alert.alert('Erro', `Falha no login: ${errorMsg || 'Email ou senha inválidos'}`);
+      console.error('❌ Erro inesperado:', error);
+      Alert.alert('Erro', 'Erro ao conectar com o servidor');
     } finally {
       setLoading(false);
     }
@@ -31,12 +37,27 @@ export default function LoginScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Entrar</Text>
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-      <TextInput style={styles.input} placeholder="Senha" value={senha} onChangeText={setSenha} secureTextEntry />
+      <TextInput 
+        style={styles.input} 
+        placeholder="Email" 
+        value={email} 
+        onChangeText={setEmail} 
+        keyboardType="email-address" 
+        autoCapitalize="none"
+        editable={!loading}
+      />
+      <TextInput 
+        style={styles.input} 
+        placeholder="Senha" 
+        value={senha} 
+        onChangeText={setSenha} 
+        secureTextEntry
+        editable={!loading}
+      />
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Entrar</Text>}
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+      <TouchableOpacity onPress={() => navigation.navigate('Register')} disabled={loading}>
         <Text style={styles.link}>Não tem conta? Cadastre-se</Text>
       </TouchableOpacity>
     </View>

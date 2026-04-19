@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
 // Detectar o ambiente e ajustar a URL
 // Android Emulator: 10.0.2.2 (gateway para o host)
@@ -44,7 +45,22 @@ const api = axios.create({
 
 // Interceptor para adicionar token JWT automaticamente
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    try {
+      // Buscar token do SecureStore
+      const token = await SecureStore.getItemAsync('access_token');
+      
+      if (token) {
+        // Adicionar token no header Authorization
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('🔐 Token adicionado ao header');
+      } else {
+        console.log('⚠️  Nenhum token encontrado');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao buscar token:', error);
+    }
+    
     console.log('📤 API Request:', config.method.toUpperCase(), config.url);
     console.log('📦 Data:', config.data);
     return config;

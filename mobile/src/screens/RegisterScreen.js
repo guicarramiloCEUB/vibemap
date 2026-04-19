@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import api from '../services/api';
+import AuthService from '../services/auth';
 
 export default function RegisterScreen({ navigation }) {
   const [nome, setNome] = useState('');
@@ -13,24 +13,23 @@ export default function RegisterScreen({ navigation }) {
       Alert.alert('Erro', 'Preencha todos os campos');
       return;
     }
+    
     setLoading(true);
     try {
-      const response = await api.post('users/register/', { 
-        username: nome,  // ✅ Corrigido: username em vez de name
-        email, 
-        password: senha 
-      });
-      console.log('✅ Registro bem-sucedido:', response.data);
-      Alert.alert('Sucesso', 'Conta criada!', [
-        { text: 'OK', onPress: () => navigation.navigate('Login') }
-      ]);
+      const result = await AuthService.register(email, nome, senha);
+      
+      if (result.success) {
+        console.log('✅ Registro bem-sucedido!');
+        console.log('🔐 Access Token:', result.tokens.access.substring(0, 20) + '...');
+        Alert.alert('Sucesso', 'Conta criada e login realizado!', [
+          { text: 'OK', onPress: () => navigation.navigate('MainApp') }
+        ]);
+      } else {
+        Alert.alert('Erro', `Não foi possível criar a conta: ${result.error}`);
+      }
     } catch (error) {
-      console.error('❌ Erro no registro:', error.response?.data || error.message);
-      const errorMsg = error.response?.data?.email?.[0] 
-        || error.response?.data?.username?.[0]
-        || error.response?.data?.password?.[0]
-        || error.message;
-      Alert.alert('Erro', `Não foi possível criar a conta: ${errorMsg}`);
+      console.error('❌ Erro inesperado:', error);
+      Alert.alert('Erro', 'Erro ao conectar com o servidor');
     } finally {
       setLoading(false);
     }
@@ -39,13 +38,34 @@ export default function RegisterScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Criar Conta</Text>
-      <TextInput style={styles.input} placeholder="Nome" value={nome} onChangeText={setNome} />
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-      <TextInput style={styles.input} placeholder="Senha" value={senha} onChangeText={setSenha} secureTextEntry />
+      <TextInput 
+        style={styles.input} 
+        placeholder="Nome de usuário" 
+        value={nome} 
+        onChangeText={setNome}
+        editable={!loading}
+      />
+      <TextInput 
+        style={styles.input} 
+        placeholder="Email" 
+        value={email} 
+        onChangeText={setEmail} 
+        keyboardType="email-address" 
+        autoCapitalize="none"
+        editable={!loading}
+      />
+      <TextInput 
+        style={styles.input} 
+        placeholder="Senha" 
+        value={senha} 
+        onChangeText={setSenha} 
+        secureTextEntry
+        editable={!loading}
+      />
       <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Cadastrar</Text>}
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+      <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={loading}>
         <Text style={styles.link}>Já tem conta? Entrar</Text>
       </TouchableOpacity>
     </View>
