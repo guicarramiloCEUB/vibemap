@@ -34,6 +34,26 @@ class EventStore {
   }
 
   /**
+   * Buscar eventos próximos com base em coordenadas
+   */
+  async fetchNearbyEvents(latitude, longitude, radius = 5000) {
+    this.loading = true;
+    this.error = null;
+
+    try {
+      const nearbyEvents = await EventService.getNearbyEvents(latitude, longitude, radius);
+      this.events = nearbyEvents;
+      return nearbyEvents;
+    } catch (error) {
+      this.error = error.message;
+      console.error('Erro ao buscar eventos próximos:', error);
+      throw error;
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  /**
    * Criar um novo evento
    */
   async createEvent(eventData) {
@@ -74,6 +94,13 @@ class EventStore {
    */
   get eventCount() {
     return this.events.length;
+  }
+
+  /**
+   * Getter: todos os eventos
+   */
+  get allEvents() {
+    return this.events;
   }
 }
 

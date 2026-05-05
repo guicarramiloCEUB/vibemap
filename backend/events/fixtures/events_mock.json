@@ -1,0 +1,255 @@
+[
+  {
+    "model": "events.event",
+    "pk": 1,
+    "fields": {
+      "title": "Show da Banda XYZ",
+      "description": "Venha se divertir com a gente!",
+      "location": {
+        "type": "Point",
+        "coordinates": [-47.895, -15.770]
+      },
+      "location_name": "Bar do Centro",
+      "starts_at": "2026-05-05T20:00:00Z",
+      "ends_at": null,
+      "max_participants": 100,
+      "is_public": true,
+      "requires_approval": false,
+      "is_active": true,
+      "creator": 1,
+      "event_type": 1,
+      "created_at": "2026-05-05T10:00:00Z",
+      "updated_at": "2026-05-05T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 2,
+    "fields": {
+      "title": "Happy Hour Clássico",
+      "description": "Cerveja gelada e música ao vivo",
+      "location": {
+        "type": "Point",
+        "coordinates": [-47.880, -15.765]
+      },
+      "location_name": "Pub da Asa Norte",
+      "starts_at": "2026-05-05T18:30:00Z",
+      "ends_at": null,
+      "max_participants": 80,
+      "is_public": true,
+      "requires_approval": false,
+      "is_active": true,
+      "creator": 1,
+      "event_type": 2,
+      "created_at": "2026-05-05T10:00:00Z",
+      "updated_at": "2026-05-05T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 3,
+    "fields": {
+      "title": "Noite de Forró",
+      "description": "Dança e diversão garantida",
+      "location": {
+        "type": "Point",
+        "coordinates": [-47.905, -15.790]
+      },
+      "location_name": "Festa no Deck",
+      "starts_at": "2026-05-05T22:00:00Z",
+      "ends_at": null,
+      "max_participants": 150,
+      "is_public": true,
+      "requires_approval": false,
+      "is_active": true,
+      "creator": 1,
+      "event_type": 3,
+      "created_at": "2026-05-05T10:00:00Z",
+      "updated_at": "2026-05-05T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 4,
+    "fields": {
+      "title": "Live Music Night",
+      "description": "Ambiente animado e seguro",
+      "location": {
+        "type": "Point",
+        "coordinates": [-47.870, -15.775]
+      },
+      "location_name": "Casa de Shows",
+      "starts_at": "2026-05-05T21:00:00Z",
+      "ends_at": null,
+      "max_participants": 120,
+      "is_public": true,
+      "requires_approval": false,
+      "is_active": true,
+      "creator": 1,
+      "event_type": 1,
+      "created_at": "2026-05-05T10:00:00Z",
+      "updated_at": "2026-05-05T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 5,
+    "fields": {
+      "title": "Samba com Galera",
+      "description": "Promoção de drinks",
+      "location": {
+        "type": "Point",
+        "coordinates": [-47.915, -15.810]
+      },
+      "location_name": "Roda de Samba",
+      "starts_at": "2026-05-05T23:00:00Z",
+      "ends_at": null,
+      "max_participants": 200,
+      "is_public": true,
+      "requires_approval": false,
+      "is_active": true,
+      "creator": 1,
+      "event_type": 3,
+      "created_at": "2026-05-05T10:00:00Z",
+      "updated_at": "2026-05-05T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 6,
+    "fields": {
+      "title": "Noite Eletrônica",
+      "description": "DJ ao vivo até o amanhecer",
+      "location": {
+        "type": "Point",
+        "coordinates": [-47.885, -15.820]
+      },
+      "location_name": "Boate Club",
+      "starts_at": "2026-05-06T00:00:00Z",
+      "ends_at": null,
+      "max_participants": 300,
+      "is_public": true,
+      "requires_approval": false,
+      "is_active": true,
+      "creator": 1,
+      "event_type": 4,
+      "created_at": "2026-05-05T10:00:00Z",
+      "updated_at": "2026-05-05T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 7,
+    "fields": {
+      "title": "Karaokê",
+      "description": "Cante e divirta-se!",
+      "location": {
+        "type": "Point",
+        "coordinates": [-47.875, -15.745]
+      },
+      "location_name": "Karaokê Downtown",
+      "starts_at": "2026-05-05T20:30:00Z",
+      "ends_at": null,
+      "max_participants": 60,
+      "is_public": true,
+      "requires_approval": false,
+      "is_active": true,
+      "creator": 1,
+      "event_type": 5,
+      "created_at": "2026-05-05T10:00:00Z",
+      "updated_at": "2026-05-05T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 8,
+    "fields": {
+      "title": "Comedy Show",
+      "description": "Muito bom para rir",
+      "location": {
+        "type": "Point",
+        "coordinates": [-47.920, -15.795]
+      },
+      "location_name": "Teatro da Asa",
+      "starts_at": "2026-05-05T19:00:00Z",
+      "ends_at": null,
+      "max_participants": 200,
+      "is_public": true,
+      "requires_approval": false,
+      "is_active": true,
+      "creator": 1,
+      "event_type": 2,
+      "created_at": "2026-05-05T10:00:00Z",
+      "updated_at": "2026-05-05T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 9,
+    "fields": {
+      "title": "Jazz Night",
+      "description": "Música sofisticada",
+      "location": {
+        "type": "Point",
+        "coordinates": [-47.882, -15.788]
+      },
+      "location_name": "Jazz Club",
+      "starts_at": "2026-05-05T21:30:00Z",
+      "ends_at": null,
+      "max_participants": 90,
+      "is_public": true,
+      "requires_approval": false,
+      "is_active": true,
+      "creator": 1,
+      "event_type": 1,
+      "created_at": "2026-05-05T10:00:00Z",
+      "updated_at": "2026-05-05T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 10,
+    "fields": {
+      "title": "Beer Pong Tournament",
+      "description": "Competição de cerveja",
+      "location": {
+        "type": "Point",
+        "coordinates": [-47.895, -15.760]
+      },
+      "location_name": "Sports Bar",
+      "starts_at": "2026-05-05T20:00:00Z",
+      "ends_at": null,
+      "max_participants": 50,
+      "is_public": true,
+      "requires_approval": false,
+      "is_active": true,
+      "creator": 1,
+      "event_type": 2,
+      "created_at": "2026-05-05T10:00:00Z",
+      "updated_at": "2026-05-05T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 11,
+    "fields": {
+      "title": "Drinks & Beats",
+      "description": "Open bar até meia-noite",
+      "location": {
+        "type": "Point",
+        "coordinates": [-47.910, -15.805]
+      },
+      "location_name": "Sky Lounge",
+      "starts_at": "2026-05-05T22:30:00Z",
+      "ends_at": null,
+      "max_participants": 180,
+      "is_public": true,
+      "requires_approval": false,
+      "is_active": true,
+      "creator": 1,
+      "event_type": 4,
+      "created_at": "2026-05-05T10:00:00Z",
+      "updated_at": "2026-05-05T10:00:00Z"
+    }
+  }
+]

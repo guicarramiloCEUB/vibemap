@@ -23,7 +23,7 @@ class Event(models.Model):
     location_name = models.CharField(max_length=255, blank=True, null=True)
     
     # Timing
-    starts_at = models.DateTimeField()
+    starts_at = models.DateTimeField(null=True, blank=True)
     ends_at = models.DateTimeField(blank=True, null=True)
     
     # Capacity

@@ -10,10 +10,11 @@ class EventSerializer(GeoModelSerializer):
         model = Event
         geo_field = 'location'
         fields = (
-            'title', 'description', 'location', 'location_name',
+            'id', 'title', 'description', 'location', 'location_name',
             'starts_at', 'ends_at', 'max_participants',
-            'is_public', 'requires_approval', 'is_active', 'event_type'
+            'is_public', 'requires_approval', 'is_active', 'event_type', 'creator'
         )
+        read_only_fields = ('id', 'starts_at', 'creator', 'created_at', 'updated_at')
 
 class EventTypeSerializer(serializers.ModelSerializer):
     class Meta:

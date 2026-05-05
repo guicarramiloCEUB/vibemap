@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import MapView, { Marker } from 'react-native-maps';
+import { observer } from 'mobx-react-lite';
 import CreateEventModal from '../components/CreateEventModal';
 import LocationService from '../services/location';
+import { eventStore } from '../stores/EventStore';
 
-export default function MapScreen() {
+export default observer(function MapScreen() {
   const [showModal, setShowModal] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const mapRef = useRef(null);
@@ -50,6 +52,19 @@ export default function MapScreen() {
     getLocation();
   }, []);
 
+  // Buscar eventos próximos quando localização mudar
+  useEffect(() => {
+    if (userLocation) {
+      eventStore.fetchNearbyEvents(
+        userLocation.latitude,
+        userLocation.longitude,
+        5000 // 5km
+      ).catch(error => {
+        console.error('Erro ao buscar eventos próximos:', error);
+      });
+    }
+  }, [userLocation]);
+
   const handleCreateEvent = () => {
     setShowModal(true);
   };
@@ -73,8 +88,32 @@ export default function MapScreen() {
           longitudeDelta: 0.005,
         }}
       >
-        {/* Markers dos eventos - a implementar quando backend tiver listagem */}
+        {/* Markers dos eventos */}
+        {eventStore.allEvents.map((event) => {
+          const coords = event.location?.coordinates;
+          if (!coords) return null;
+
+          return (
+            <Marker
+              key={event.id}
+              coordinate={{
+                latitude: coords[1], // GeoJSON é [lng, lat]
+                longitude: coords[0],
+              }}
+              title={event.title}
+              description={event.creator?.username || 'Evento'}
+              pinColor="#7c3aed"
+            />
+          );
+        })}
       </MapView>
+
+      {/* Loading indicator */}
+      {eventStore.loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#7c3aed" />
+        </View>
+      )}
 
       {/* Botão flutuante para criar evento */}
       <View style={styles.fabContainer}>
@@ -100,7 +139,7 @@ export default function MapScreen() {
       />
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -127,5 +166,16 @@ const styles = StyleSheet.create({
     elevation: 8,
     borderWidth: 5,
     borderColor: '#ffffff6a',
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: 20,
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    zIndex: 100,
   },
 });

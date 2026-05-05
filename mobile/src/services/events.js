@@ -3,7 +3,7 @@ import api from './api';
 const EventService = {
   /**
    * Criar um novo evento
-   * @param {Object} eventData - { title, description, location_name, latitude, longitude, event_type_id }
+   * @param {Object} eventData - { title, description, latitude, longitude, event_type_id }
    * @returns {Promise<Object>} evento criado
    */
   async createEvent(eventData) {
@@ -12,13 +12,12 @@ const EventService = {
       const payload = {
         title: eventData.title,
         description: eventData.description,
-        location_name: eventData.location_name,
         location: {
           type: 'Point',
           coordinates: [eventData.longitude, eventData.latitude], // GeoJSON uses [lng, lat]
         },
-        event_type_id: eventData.event_type_id || 1, // Default type
-        starts_at: eventData.starts_at || new Date().toISOString(),
+        event_type: eventData.event_type_id ,
+        // starts_at é preenchido automaticamente no backend com timezone.now()
       };
 
       const response = await api.post('/events/criar_evento/', payload);
@@ -29,7 +28,28 @@ const EventService = {
     }
   },
 
-
+  /**
+   * Buscar eventos próximos com base em coordenadas
+   * @param {Number} latitude - Latitude do usuário
+   * @param {Number} longitude - Longitude do usuário
+   * @param {Number} radius - Raio em metros (default 5000m = 5km)
+   * @returns {Promise<Array>} lista de eventos próximos
+   */
+  async getNearbyEvents(latitude, longitude, radius = 5000) {
+    try {
+      const response = await api.get('/events/nearby/', {
+        params: {
+          lat: latitude,
+          lng: longitude,
+          radius: radius,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar eventos próximos:', error);
+      throw error;
+    }
+  },
 };
 
 export default EventService;
