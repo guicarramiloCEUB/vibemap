@@ -1,9 +1,10 @@
 from rest_framework_gis.serializers import GeoModelSerializer
 from rest_framework_gis.fields import GeometryField
-from events.models import Event
+from events.models import Event, EventType
+from rest_framework import serializers
 
 
-class CreateEventSerializer(GeoModelSerializer):
+class EventSerializer(GeoModelSerializer):
     location = GeometryField()
     class Meta:
         model = Event
@@ -13,3 +14,8 @@ class CreateEventSerializer(GeoModelSerializer):
             'starts_at', 'ends_at', 'max_participants',
             'is_public', 'requires_approval', 'is_active', 'event_type'
         )
+
+class EventTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventType
+        fields = ('id', 'name', 'description')

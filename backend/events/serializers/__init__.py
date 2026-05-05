@@ -1,3 +1,3 @@
-from .events import CreateEventSerializer
+from .events import EventSerializer, EventTypeSerializer
 
-__all__ = ['CreateEventSerializer']
+__all__ = ['EventSerializer', 'EventTypeSerializer']

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
+import { AuthLayout, AuthInput, AuthButton } from '../components';
 import AuthService from '../services/auth';
 
 export default function LoginScreen({ navigation }) {
@@ -20,9 +22,12 @@ export default function LoginScreen({ navigation }) {
       if (result.success) {
         console.log('✅ Login bem-sucedido!');
         console.log('🔐 Access Token:', result.tokens.access.substring(0, 20) + '...');
-        Alert.alert('Sucesso', 'Login realizado!', [
-          { text: 'OK', onPress: () => navigation.navigate('MainApp') }
-        ]);
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'MainApp' }],
+          })
+        );
       } else {
         Alert.alert('Erro', `Falha no login: ${result.error || 'Email ou senha inválidos'}`);
       }
@@ -35,40 +40,67 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Entrar</Text>
-      <TextInput 
-        style={styles.input} 
-        placeholder="Email" 
-        value={email} 
-        onChangeText={setEmail} 
-        keyboardType="email-address" 
-        autoCapitalize="none"
+    <AuthLayout>
+      <Text style={styles.title}>Sign In</Text>
+
+      <AuthInput
+        icon="mail"
+        placeholder="Username or email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
         editable={!loading}
       />
-      <TextInput 
-        style={styles.input} 
-        placeholder="Senha" 
-        value={senha} 
-        onChangeText={setSenha} 
+
+      <AuthInput
+        icon="lock-closed"
+        placeholder="Password"
+        value={senha}
+        onChangeText={setSenha}
         secureTextEntry
         editable={!loading}
       />
-      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Entrar</Text>}
+
+      <TouchableOpacity onPress={() => {} /* TODO: Forgot password */} disabled={loading}>
+        <Text style={styles.forgotLink}>Forgot password?</Text>
       </TouchableOpacity>
+
+      <AuthButton
+        title="Sign in"
+        onPress={handleLogin}
+        loading={loading}
+        disabled={loading}
+      />
+
       <TouchableOpacity onPress={() => navigation.navigate('Register')} disabled={loading}>
-        <Text style={styles.link}>Não tem conta? Cadastre-se</Text>
+        <Text style={styles.registerLink}>Não tem conta? <Text style={styles.registerLinkBold}>Cadastre-se</Text></Text>
       </TouchableOpacity>
-    </View>
+    </AuthLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#fff' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 32, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 16 },
-  button: { backgroundColor: '#4CAF50', borderRadius: 8, padding: 14, alignItems: 'center', marginBottom: 16 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  link: { textAlign: 'center', color: '#4CAF50', fontSize: 14 },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 32,
+    textAlign: 'center',
+    color: '#000',
+  },
+  forgotLink: {
+    textAlign: 'right',
+    color: '#999',
+    fontSize: 13,
+    marginBottom: 16,
+  },
+  registerLink: {
+    textAlign: 'center',
+    color: '#999',
+    fontSize: 14,
+    marginTop: 16,
+  },
+  registerLinkBold: {
+    fontWeight: '600',
+    color: '#0066FF',
+  },
 });

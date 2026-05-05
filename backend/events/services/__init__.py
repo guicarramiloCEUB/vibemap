@@ -1,3 +1,4 @@
 from .events import EventService
+from .dominios import EventTypeService
 
-__all__ = ['EventService']
+__all__ = ['EventService', 'EventTypeService']

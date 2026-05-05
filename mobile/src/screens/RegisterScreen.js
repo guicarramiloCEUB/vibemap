@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
+import AuthLayout from '../components/AuthLayout';
+import AuthInput from '../components/AuthInput';
+import AuthButton from '../components/AuthButton';
 import AuthService from '../services/auth';
 
 export default function RegisterScreen({ navigation }) {
@@ -21,9 +25,12 @@ export default function RegisterScreen({ navigation }) {
       if (result.success) {
         console.log('✅ Registro bem-sucedido!');
         console.log('🔐 Access Token:', result.tokens.access.substring(0, 20) + '...');
-        Alert.alert('Sucesso', 'Conta criada e login realizado!', [
-          { text: 'OK', onPress: () => navigation.navigate('MainApp') }
-        ]);
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'MainApp' }],
+          })
+        );
       } else {
         Alert.alert('Erro', `Não foi possível criar a conta: ${result.error}`);
       }
@@ -36,47 +43,62 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <AuthLayout logo>
       <Text style={styles.title}>Criar Conta</Text>
-      <TextInput 
-        style={styles.input} 
-        placeholder="Nome de usuário" 
-        value={nome} 
+      
+      <AuthInput
+        placeholder="Nome de usuário"
+        value={nome}
         onChangeText={setNome}
+        icon="person"
         editable={!loading}
       />
-      <TextInput 
-        style={styles.input} 
-        placeholder="Email" 
-        value={email} 
-        onChangeText={setEmail} 
-        keyboardType="email-address" 
+      
+      <AuthInput
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        icon="mail"
+        keyboardType="email-address"
         autoCapitalize="none"
         editable={!loading}
       />
-      <TextInput 
-        style={styles.input} 
-        placeholder="Senha" 
-        value={senha} 
-        onChangeText={setSenha} 
+      
+      <AuthInput
+        placeholder="Senha"
+        value={senha}
+        onChangeText={setSenha}
+        icon="lock-closed"
         secureTextEntry
         editable={!loading}
       />
-      <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Cadastrar</Text>}
-      </TouchableOpacity>
+      
+      <AuthButton 
+        title="Cadastrar" 
+        onPress={handleRegister} 
+        loading={loading}
+      />
+      
       <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={loading}>
         <Text style={styles.link}>Já tem conta? Entrar</Text>
       </TouchableOpacity>
-    </View>
+    </AuthLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#fff' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 32, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 16 },
-  button: { backgroundColor: '#4CAF50', borderRadius: 8, padding: 14, alignItems: 'center', marginBottom: 16 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  link: { textAlign: 'center', color: '#4CAF50', fontSize: 14 },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 32,
+    textAlign: 'center',
+    color: '#000',
+  },
+  link: {
+    textAlign: 'center',
+    color: '#0066FF',
+    fontSize: 14,
+    marginTop: 16,
+    textDecorationLine: 'underline',
+  },
 });
