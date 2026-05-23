@@ -25,13 +25,11 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy project files
 COPY . .
 
-# Collect static files
-RUN cd backend && python manage.py collectstatic --noinput || true
+# Make entrypoint script executable
+RUN chmod +x entrypoint.sh
 
 # Expose port
 EXPOSE 8000
 
-# Run migrations and start app
-CMD cd backend && \
-    python manage.py migrate && \
-    daphne -b 0.0.0.0 -p 8000 core.asgi:application
+# Run entrypoint script
+CMD ["./entrypoint.sh"]

@@ -35,13 +35,14 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      [
-        "@rnmapbox/maps",
-        {
-          "RNMapboxMapsVersion": "11.20.1"
-        }
-      ]
-    ]
+     "plugins": [
+       [
+         "@rnmapbox/maps",
+         {
+           "RNMapboxMapsVersion": "11.20.1",
+           "RNMapboxAccessToken": "pk.eyJ1IjoiZ3VpY2FycmFtaWxvIiwiYSI6ImNtaXFhODNqZjBkcm4zY3B2bzFiZTkxNGEifQ.uMWfSP6tLfHIdBmDDN0d9g"
+         }
+       ]
+     ]
   }
 }

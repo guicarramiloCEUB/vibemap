@@ -128,10 +128,15 @@ events_data = [
 try:
     user = User.objects.first()
     if not user:
-        print("❌ Nenhum usuário encontrado. Crie um usuário primeiro!")
-        exit(1)
-except:
-    print("❌ Erro ao buscar usuário")
+        print("📝 Nenhum usuário encontrado. Criando usuário de teste...")
+        user = User.objects.create_user(
+            email="test@vibemap.com",
+            username="vibemap_test",
+            password="testpass123"
+        )
+        print(f"✅ Usuário de teste criado: {user.email}")
+except Exception as e:
+    print(f"❌ Erro ao buscar/criar usuário: {str(e)}")
     exit(1)
 
 # Criar eventos

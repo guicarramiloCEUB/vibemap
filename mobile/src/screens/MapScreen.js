@@ -2,50 +2,48 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import MapView, { Marker } from 'react-native-maps';
+import Mapbox from '@rnmapbox/maps';
 import { observer } from 'mobx-react-lite';
 import CreateEventModal from '../components/CreateEventModal';
 import LocationService from '../services/location';
 import { eventStore } from '../stores/EventStore';
 
+// Configurar token do Mapbox
+Mapbox.setAccessToken('pk.eyJ1IjoiZ3VpY2FycmFtaWxvIiwiYSI6ImNtaXFhODNqZjBkcm4zY3B2bzFiZTkxNGEifQ.uMWfSP6tLfHIdBmDDN0d9g');
+
 export default observer(function MapScreen() {
   const [showModal, setShowModal] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [cameraReady, setCameraReady] = useState(false);
   const mapRef = useRef(null);
+  const cameraRef = useRef(null);
 
   // Obter localização real do usuário ao inicializar
   useEffect(() => {
     const getLocation = async () => {
       try {
+        setIsLoading(true);
+        console.log('Solicitando localização do usuário...');
+        
         const location = await LocationService.getCurrentLocation();
+        console.log('✅ Localização obtida:', location);
         setUserLocation(location);
         
-        // Animar para a localização com zoom
-        if (mapRef.current) {
-          mapRef.current.animateToRegion({
-            latitude: location.latitude,
-            longitude: location.longitude,
-            latitudeDelta: 0.005,
-            longitudeDelta: 0.005,
-          }, 1000);
-        }
+        // Tentar centralizar assim que temos localização
+        setTimeout(() => {
+          handleCenterOnUser();
+        }, 500);
       } catch (error) {
-        console.error('Erro ao obter localização:', error);
+        console.error('❌ Erro ao obter localização:', error);
         // Fallback: Brasília
-        const fallbackLocation = {
+        console.log('Usando fallback: Brasília');
+        setUserLocation({
           latitude: -15.8,
           longitude: -47.9,
-        };
-        setUserLocation(fallbackLocation);
-        
-        if (mapRef.current) {
-          mapRef.current.animateToRegion({
-            latitude: fallbackLocation.latitude,
-            longitude: fallbackLocation.longitude,
-            latitudeDelta: 0.005,
-            longitudeDelta: 0.005,
-          }, 1000);
-        }
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -55,6 +53,7 @@ export default observer(function MapScreen() {
   // Buscar eventos próximos quando localização mudar
   useEffect(() => {
     if (userLocation) {
+      console.log('Buscando eventos próximos a:', userLocation);
       eventStore.fetchNearbyEvents(
         userLocation.latitude,
         userLocation.longitude,
@@ -73,40 +72,75 @@ export default observer(function MapScreen() {
     setShowModal(false);
   };
 
+  const handleCenterOnUser = () => {
+    if (userLocation && cameraRef.current) {
+      console.log('🎯 Recentrando no usuário:', userLocation);
+      cameraRef.current.moveTo(
+        [userLocation.longitude, userLocation.latitude],
+        300 // animação de 300ms
+      );
+    }
+  };
+
+  if (isLoading || !userLocation) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#7c3aed" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <MapView
+      <Mapbox.MapView
         ref={mapRef}
         style={styles.map}
-        showsUserLocation={true}
-        showsMyLocationButton={true}
-        followsUserLocation={true}
-        initialRegion={{
-          latitude: userLocation?.latitude || -15.8,
-          longitude: userLocation?.longitude || -47.9,
-          latitudeDelta: 0.005,
-          longitudeDelta: 0.005,
+        styleURL={Mapbox.StyleURL.Street}
+        onDidFinishLoadingMap={() => {
+          console.log('📍 Mapa Mapbox carregado');
+          setCameraReady(true);
         }}
       >
+        {/* Câmera para controlar visualização */}
+        <Mapbox.Camera
+          ref={cameraRef}
+          defaultSettings={{
+            centerCoordinate: [userLocation?.longitude || -47.9, userLocation?.latitude || -15.8],
+            zoomLevel: 14,
+            animationDuration: 0,
+          }}
+        />
+        {/* Marcador de localização do usuário */}
+        {userLocation && (
+          <Mapbox.MarkerView
+            coordinate={[userLocation.longitude, userLocation.latitude]}
+          >
+            <View style={styles.userMarkerContainer}>
+              <View style={styles.userMarker} />
+              <View style={styles.userMarkerPulse} />
+            </View>
+          </Mapbox.MarkerView>
+        )}
+
         {/* Markers dos eventos */}
-        {eventStore.allEvents.map((event) => {
+        {eventStore.allEvents && eventStore.allEvents.map((event) => {
           const coords = event.location?.coordinates;
-          if (!coords) return null;
+          if (!coords || !coords[0] || !coords[1]) return null;
 
           return (
-            <Marker
+            <Mapbox.MarkerView
               key={event.id}
-              coordinate={{
-                latitude: coords[1], // GeoJSON é [lng, lat]
-                longitude: coords[0],
-              }}
-              title={event.title}
-              description={event.creator?.username || 'Evento'}
-              pinColor="#7c3aed"
-            />
+              coordinate={[coords[0], coords[1]]}
+            >
+              <View style={styles.markerContainer}>
+                <View style={styles.marker}>
+                  <Ionicons name="radio-button-on" size={32} color="#7c3aed" />
+                </View>
+              </View>
+            </Mapbox.MarkerView>
           );
         })}
-      </MapView>
+      </Mapbox.MapView>
 
       {/* Loading indicator */}
       {eventStore.loading && (
@@ -114,6 +148,22 @@ export default observer(function MapScreen() {
           <ActivityIndicator size="large" color="#7c3aed" />
         </View>
       )}
+
+      {/* Botão para recentrar no usuário */}
+      <TouchableOpacity 
+        onPress={handleCenterOnUser}
+        style={styles.centerButton}
+        activeOpacity={0.7}
+      >
+        <LinearGradient
+          colors={['#7c3aed', '#6d28d9']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.centerButtonGradient}
+        >
+          <Ionicons name="locate" size={24} color="#fff" />
+        </LinearGradient>
+      </TouchableOpacity>
 
       {/* Botão flutuante para criar evento */}
       <View style={styles.fabContainer}>
@@ -147,6 +197,60 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+    
+  },
+  userMarkerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  userMarker: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#007AFF',
+    borderWidth: 3,
+    borderColor: '#ffffff',
+  },
+  userMarkerPulse: {
+    position: 'absolute',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderWidth: 2,
+    borderColor: '#007AFF',
+  },
+  markerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  marker: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#7c3aed',
+  },
+  centerButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 10,
+  },
+  centerButtonGradient: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   fabContainer: {
     position: 'absolute',
@@ -160,22 +264,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
-    borderWidth: 5,
-    borderColor: '#ffffff6a',
+    shadowRadius: 4,
+    elevation: 5,
   },
   loadingContainer: {
     position: 'absolute',
-    top: 20,
-    left: 0,
-    right: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    top: '50%',
+    left: '50%',
+    marginLeft: -25,
+    marginTop: -25,
     zIndex: 100,
   },
 });

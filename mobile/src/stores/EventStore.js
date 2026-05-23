@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, flow } from 'mobx';
 import EventService from '../services/events';
 import EventTypeService from '../services/eventTypes';
 
@@ -14,14 +14,14 @@ class EventStore {
   }
 
   /**
-   * Buscar tipos de eventos
+   * Buscar tipos de eventos (com flow para async)
    */
-  async fetchEventTypes() {
+  fetchEventTypes = flow(function* () {
     this.loadingTypes = true;
     this.error = null;
 
     try {
-      const types = await EventTypeService.getEventTypes();
+      const types = yield EventTypeService.getEventTypes();
       this.eventTypes = types;
       return types;
     } catch (error) {
@@ -31,17 +31,17 @@ class EventStore {
     } finally {
       this.loadingTypes = false;
     }
-  }
+  });
 
   /**
-   * Buscar eventos próximos com base em coordenadas
+   * Buscar eventos próximos com base em coordenadas (com flow para async)
    */
-  async fetchNearbyEvents(latitude, longitude, radius = 5000) {
+  fetchNearbyEvents = flow(function* (latitude, longitude, radius = 5000) {
     this.loading = true;
     this.error = null;
 
     try {
-      const nearbyEvents = await EventService.getNearbyEvents(latitude, longitude, radius);
+      const nearbyEvents = yield EventService.getNearbyEvents(latitude, longitude, radius);
       this.events = nearbyEvents;
       return nearbyEvents;
     } catch (error) {
@@ -51,17 +51,17 @@ class EventStore {
     } finally {
       this.loading = false;
     }
-  }
+  });
 
   /**
-   * Criar um novo evento
+   * Criar um novo evento (com flow para async)
    */
-  async createEvent(eventData) {
+  createEvent = flow(function* (eventData) {
     this.loading = true;
     this.error = null;
 
     try {
-      const newEvent = await EventService.createEvent(eventData);
+      const newEvent = yield EventService.createEvent(eventData);
       this.events.push(newEvent);
       return newEvent;
     } catch (error) {
@@ -71,7 +71,7 @@ class EventStore {
     } finally {
       this.loading = false;
     }
-  }
+  });
 
 
 
