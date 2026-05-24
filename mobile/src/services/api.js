@@ -35,15 +35,21 @@ const getApiUrl = () => {
   return url;
 };
 
+
+// axios é uma biblioteca de cliente HTTP que facilita fazer requisições para o backend,
+// lidar com erros, e configurar interceptors para adicionar tokens de autenticação automaticamente
 const api = axios.create({
-  baseURL: getApiUrl(),
-  timeout: 10000,
+  baseURL: getApiUrl(),    // define a URL base para todas as requisições, que é a URL do backend
+  timeout: 10000,         // se a resposta demorar mais de 10 segundos, a requisição é cancelada para evitar que o app fique travado esperando
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 // Interceptor para adicionar token JWT automaticamente
+// ganchos que executam código antes de cada requisição ou resposta,
+//  permitindo modificar a requisição ou resposta, 
+// ou lidar com erros de forma centralizada
 api.interceptors.request.use(
   async (config) => {
     try {
@@ -63,7 +69,7 @@ api.interceptors.request.use(
     
     console.log('📤 API Request:', config.method.toUpperCase(), config.url);
     console.log('📦 Data:', config.data);
-    return config;
+    return config; // retorna a config modificada
   },
   (error) => {
     console.error('❌ Request Error:', error);
@@ -73,6 +79,8 @@ api.interceptors.request.use(
 
 // Interceptor para tratar erros
 api.interceptors.response.use(
+  // apenas para debug: loga todas as respostas da API, 
+  // tanto sucesso quanto erro, para facilitar o desenvolvimento e a depuração
   (response) => {
     console.log('✅ API Response:', response.status, response.data);
     return response;

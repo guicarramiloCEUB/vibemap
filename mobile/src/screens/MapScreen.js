@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Mapbox from '@rnmapbox/maps';
@@ -16,8 +16,37 @@ export default observer(function MapScreen() {
   const [userLocation, setUserLocation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [cameraReady, setCameraReady] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(true);
+  const [zoomLevel, setZoomLevel] = useState(16);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const mapRef = useRef(null);
   const cameraRef = useRef(null);
+  const isZoomedIn = zoomLevel >= 15.5;
+  const heatmapZoomCap = 15;
+
+  // Converter eventos em GeoJSON para heatmap
+  const getHeatmapGeoJSON = () => {
+    if (!eventStore.allEvents || eventStore.allEvents.length === 0) {
+      return { type: 'FeatureCollection', features: [] };
+    }
+
+    const features = eventStore.allEvents
+      .filter(event => event.location?.coordinates?.[0] && event.location?.coordinates?.[1])
+      .map(event => ({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: event.location.coordinates,
+        },
+        properties: {
+          id: event.id,
+          title: event.title,
+          intensity: 1, // Peso uniforme, pode variar por tipo de evento
+        },
+      }));
+
+    return { type: 'FeatureCollection', features };
+  };
 
   // Obter localização real do usuário ao inicializar
   useEffect(() => {
@@ -29,11 +58,6 @@ export default observer(function MapScreen() {
         const location = await LocationService.getCurrentLocation();
         console.log('✅ Localização obtida:', location);
         setUserLocation(location);
-        
-        // Tentar centralizar assim que temos localização
-        setTimeout(() => {
-          handleCenterOnUser();
-        }, 500);
       } catch (error) {
         console.error('❌ Erro ao obter localização:', error);
         // Fallback: Brasília
@@ -82,6 +106,43 @@ export default observer(function MapScreen() {
     }
   };
 
+  const handleHeatmapPress = (event) => {
+    const coords =
+      event?.features?.[0]?.geometry?.coordinates ||
+      event?.geometry?.coordinates ||
+      event?.coordinates?.coordinates;
+
+    const featureEventId = event?.features?.[0]?.properties?.id;
+    if (featureEventId && eventStore.allEvents) {
+      const match = eventStore.allEvents.find(item => item.id === featureEventId);
+      if (match) {
+        setSelectedEvent(match);
+      }
+    }
+
+    if (coords && cameraRef.current) {
+      console.log('🔥 Centralizando no heatmap:', coords);
+      const targetZoom = Math.max(zoomLevel, 16.5);
+      cameraRef.current.setCamera({
+        centerCoordinate: coords,
+        zoomLevel: targetZoom,
+        animationDuration: 350,
+      });
+    }
+  };
+
+  const handlePinPress = (eventItem) => {
+    if (!eventItem?.location?.coordinates || !cameraRef.current) return;
+
+    const coords = eventItem.location.coordinates;
+    setSelectedEvent(eventItem);
+    cameraRef.current.setCamera({
+      centerCoordinate: coords,
+      zoomLevel: Math.max(zoomLevel, 17),
+      animationDuration: 300,
+    });
+  };
+
   if (isLoading || !userLocation) {
     return (
       <View style={styles.container}>
@@ -95,10 +156,19 @@ export default observer(function MapScreen() {
       <Mapbox.MapView
         ref={mapRef}
         style={styles.map}
-        styleURL={Mapbox.StyleURL.Street}
+        styleURL="mapbox://styles/mapbox/standard"
+        scaleBarEnabled={false}
         onDidFinishLoadingMap={() => {
-          console.log('📍 Mapa Mapbox carregado');
+          console.log('📍 Mapa Mapbox Standard carregado');
           setCameraReady(true);
+          // Centraliza no usuário assim que o mapa terminar de carregar em tela
+          handleCenterOnUser();
+        }}
+        onCameraChanged={(event) => {
+          const zoom = event?.properties?.zoom;
+          if (typeof zoom === 'number') {
+            setZoomLevel(zoom);
+          }
         }}
       >
         {/* Câmera para controlar visualização */}
@@ -106,10 +176,137 @@ export default observer(function MapScreen() {
           ref={cameraRef}
           defaultSettings={{
             centerCoordinate: [userLocation?.longitude || -47.9, userLocation?.latitude || -15.8],
-            zoomLevel: 14,
+            zoomLevel: 16,
+            pitch: 60,
             animationDuration: 0,
           }}
         />
+
+        <Mapbox.StyleImport
+          id="basemap"
+          existing
+          config={{
+            lightPreset: 'dusk',
+            show3dBuildings: 'true',
+            showPointOfInterestLabels: 'true',
+          }}
+        />
+
+        {/* Heatmap de eventos */}
+        {showHeatmap && (
+          <Mapbox.ShapeSource
+            id="eventHeatmapSource"
+            shape={getHeatmapGeoJSON()}
+            onPress={handleHeatmapPress}
+            hitbox={{ width: 24, height: 24 }}
+          >
+            <Mapbox.CircleLayer
+              id="eventHeatmapHitbox"
+              style={{
+                circleRadius: [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  10, 10,
+                  14, 16,
+                  18, 20,
+                ],
+                circleColor: '#000000',
+                circleOpacity: 0.01,
+              }}
+            />
+            <Mapbox.HeatmapLayer
+              id="eventHeatmap"
+              style={{
+                heatmapRadius: [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  10, 20,
+                  12, 40,
+                  14, 70,
+                  heatmapZoomCap, 90,
+                  18, 90,
+                ],
+                heatmapWeight: ['get', 'intensity'],
+                heatmapIntensity: [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  10, 0.4,
+                  12, 0.6,
+                  heatmapZoomCap, 0.9,
+                  18, 0.9,
+                ],
+                heatmapColor: [
+                  'interpolate',
+                  ['linear'],
+                  ['heatmap-density'],
+                  0, 'rgba(0, 0, 255, 0)',      // Transparente
+                  0.2, 'rgba(65, 105, 225, 0.8)',    // Azul
+                  0.4, 'rgba(124, 58, 237, 0.8)',    // Roxo
+                  0.6, 'rgba(236, 72, 153, 0.8)',    // Rosa
+                  0.8, 'rgba(239, 68, 68, 0.8)',     // Vermelho
+                  1, 'rgba(159, 18, 57, 1)',         // Vermelho escuro
+                ],
+                heatmapOpacity: 0.7,
+              }}
+            />
+          </Mapbox.ShapeSource>
+        )}
+
+        {/* Pins 3D quando zoom estiver proximo */}
+        {isZoomedIn && eventStore.allEvents && eventStore.allEvents.map((event) => {
+          const coords = event.location?.coordinates;
+          if (!coords || !coords[0] || !coords[1]) return null;
+
+          return (
+            <Mapbox.MarkerView
+              key={`pin-${event.id}`}
+              coordinate={[coords[0], coords[1]]}
+              anchor={{ x: 0.5, y: 1 }}
+            >
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => handlePinPress(event)}
+                style={styles.pin3dContainer}
+              >
+                {selectedEvent?.id === event.id && (
+                  <View style={styles.eventPopup}
+                    pointerEvents="none"
+                  >
+                    <View style={styles.eventPopupImageContainer}>
+                      <Image 
+                        source={require('../../assets/backgrounds/login-background.png')} 
+                        style={styles.eventPopupImage} 
+                      />
+                    </View>
+                    <Text style={styles.eventPopupTitle} numberOfLines={1}>
+                      {event.title}
+                    </Text>
+                    <View style={styles.eventPopupContentArea}>
+                      <Text style={styles.eventPopupDesc} numberOfLines={3}>
+                        {event.description || 'Informações gerais do evento:\nNenhum detalhe adicional fornecido.'}
+                      </Text>
+                    </View>
+                    <View style={styles.eventPopupArrow} />
+                  </View>
+                )}
+                <View style={styles.pin3dShadow} />
+                <LinearGradient
+                  colors={['#a855f7', '#7c3aed', '#5b21b6']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.pin3dHead}
+                >
+                  <View style={styles.pin3dInner} />
+                </LinearGradient>
+                <View style={styles.pin3dStem} />
+              </TouchableOpacity>
+            </Mapbox.MarkerView>
+          );
+        })}
+
         {/* Marcador de localização do usuário */}
         {userLocation && (
           <Mapbox.MarkerView
@@ -122,24 +319,6 @@ export default observer(function MapScreen() {
           </Mapbox.MarkerView>
         )}
 
-        {/* Markers dos eventos */}
-        {eventStore.allEvents && eventStore.allEvents.map((event) => {
-          const coords = event.location?.coordinates;
-          if (!coords || !coords[0] || !coords[1]) return null;
-
-          return (
-            <Mapbox.MarkerView
-              key={event.id}
-              coordinate={[coords[0], coords[1]]}
-            >
-              <View style={styles.markerContainer}>
-                <View style={styles.marker}>
-                  <Ionicons name="radio-button-on" size={32} color="#7c3aed" />
-                </View>
-              </View>
-            </Mapbox.MarkerView>
-          );
-        })}
       </Mapbox.MapView>
 
       {/* Loading indicator */}
@@ -162,6 +341,22 @@ export default observer(function MapScreen() {
           style={styles.centerButtonGradient}
         >
           <Ionicons name="locate" size={24} color="#fff" />
+        </LinearGradient>
+      </TouchableOpacity>
+
+      {/* Botão para toggle heatmap */}
+      <TouchableOpacity 
+        onPress={() => setShowHeatmap(!showHeatmap)}
+        style={[styles.heatmapButton, !showHeatmap && styles.heatmapButtonInactive]}
+        activeOpacity={0.7}
+      >
+        <LinearGradient
+          colors={showHeatmap ? ['#c13584', '#833ab4'] : ['#6b7280', '#4b5563']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heatmapButtonGradient}
+        >
+          <Ionicons name={showHeatmap ? "flame" : "flame-outline"} size={20} color="#fff" />
         </LinearGradient>
       </TouchableOpacity>
 
@@ -197,7 +392,6 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-    
   },
   userMarkerContainer: {
     alignItems: 'center',
@@ -220,20 +414,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#007AFF',
   },
-  markerContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  marker: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(124, 58, 237, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#7c3aed',
-  },
   centerButton: {
     position: 'absolute',
     top: 20,
@@ -251,6 +431,138 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
+  },
+  heatmapButton: {
+    position: 'absolute',
+    top: 80,
+    right: 20,
+    zIndex: 10,
+  },
+  heatmapButtonInactive: {
+    opacity: 0.6,
+  },
+  heatmapButtonGradient: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  pin3dContainer: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  eventPopup: {
+    position: 'absolute',
+    bottom: 50,
+    width: 200,
+    paddingTop: 45,
+    paddingBottom: 15,
+    borderRadius: 16,
+    backgroundColor: '#737373',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  eventPopupImageContainer: {
+    position: 'absolute',
+    top: -30,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 2,
+    borderColor: '#e11d48',
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  eventPopupImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  eventPopupTitle: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 10,
+    textAlign: 'center',
+    paddingHorizontal: 10,
+  },
+  eventPopupContentArea: {
+    backgroundColor: '#d4d4d8',
+    width: '100%',
+    padding: 12,
+    minHeight: 80,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+  },
+  eventPopupDesc: {
+    color: '#1f2937',
+    fontSize: 10,
+    textAlign: 'center',
+  },
+  eventPopupArrow: {
+    position: 'absolute',
+    bottom: -6,
+    left: '50%',
+    marginLeft: -6,
+    width: 12,
+    height: 12,
+    backgroundColor: '#d4d4d8',
+    transform: [{ rotate: '45deg' }],
+  },
+  pin3dShadow: {
+    position: 'absolute',
+    bottom: -2,
+    width: 22,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    transform: [{ scaleX: 1.1 }],
+  },
+  pin3dHead: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  pin3dInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#f5f3ff',
+    opacity: 0.9,
+  },
+  pin3dStem: {
+    width: 8,
+    height: 14,
+    borderRadius: 4,
+    marginTop: -4,
+    backgroundColor: '#4c1d95',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    elevation: 4,
   },
   fabContainer: {
     position: 'absolute',

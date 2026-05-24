@@ -1,49 +1,58 @@
 import React, { useState } from 'react';
 import { Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { CommonActions } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native'; // serve para resetar a pilha de navegação, ou seja, quando o usuário fizer login, ele não vai conseguir voltar pra tela de login usando o botão de voltar do celular
 import { AuthLayout, AuthInput, AuthButton } from '../components';
 import AuthService from '../services/auth';
 
-export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [loading, setLoading] = useState(false);
+export default function LoginScreen({ navigation }) { // navigation é uma prop que o react-navigation passa pra todas as telas, e serve para navegar entre as telas do app
+  // usStates para armazenar o email, senha, e estado de loading do login
+  const [email, setEmail] = useState(''); // inicializa email como string vazia, e setEmail como função para atualizar o email
+  const [senha, setSenha] = useState(''); // inicializa senha como string vazia, e setSenha como função para atualizar a senha
+  const [loading, setLoading] = useState(false); // inicializa loading como false, e setLoading como função para atualizar o estado de loading
 
-  const handleLogin = async () => {
+  const handleLogin = async () => { // async significa que essa função é assíncrona, ou seja, ela pode esperar por promessas (como a resposta do servidor) sem bloquear a interface do usuário
+    
+    // checa se email e senha estao preenchidos, se não, mostra um alerta e retorna
     if (!email || !senha) {
       Alert.alert('Erro', 'Preencha todos os campos');
       return;
     }
-    
+    // seta loading como true, esta variável é usada para desabilitar os inputs e o botão de login enquanto a requisição está sendo feita, para evitar que o usuário tente fazer login várias vezes seguidas
     setLoading(true);
     try {
-      const result = await AuthService.login(email, senha);
+      // tenta fazer login
+      const result = await AuthService.login(email, senha); // await espera a resposta
       
+
       if (result.success) {
         console.log('✅ Login bem-sucedido!');
         console.log('🔐 Access Token:', result.tokens.access.substring(0, 20) + '...');
+
+        // limpa o historico de navigação garantindo que nao retorne para a tela de login
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
-            routes: [{ name: 'MainApp' }],
+            routes: [{ name: 'MainApp' }], // navega para a tela principal do app, que é a tela com as abas que foi definida no index.js da navegação
           })
         );
       } else {
+        // se nao alerta que houve falha no login, mostrando a mensagem de erro retornada pelo servidor ou uma mensagem genérica
+        console.warn('❌ Falha no login:', result.error);
         Alert.alert('Erro', `Falha no login: ${result.error || 'Email ou senha inválidos'}`);
       }
     } catch (error) {
       console.error('❌ Erro inesperado:', error);
       Alert.alert('Erro', 'Erro ao conectar com o servidor');
     } finally {
-      setLoading(false);
+      setLoading(false); // depois de tudo libera o loading, independente se o login foi bem-sucedido ou não, para reabilitar os inputs e o botão de login
     }
   };
 
   return (
-    <AuthLayout>
+    <AuthLayout> {/* componente de layout que envolve tudo */}
       <Text style={styles.title}>Sign In</Text>
 
-      <AuthInput
+      <AuthInput 
         icon="mail"
         placeholder="Username or email"
         value={email}

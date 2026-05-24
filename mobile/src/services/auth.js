@@ -1,4 +1,8 @@
 import * as SecureStore from 'expo-secure-store';
+// secure store é uma biblioteca do expo que permite armazenar dados 
+// de forma segura no dispositivo, como tokens de autenticação, 
+// usando criptografia nativa do sistema operacional
+
 import api from './api';
 
 /**
@@ -15,12 +19,13 @@ const AuthService = {
   login: async (email, password) => {
     try {
       console.log('🔐 Tentando login...');
-      
+      /* tenta fazer login com as credenciais */
       const response = await api.post('/users/login/', {
         email,
         password,
       });
 
+      /* para login, o django esta usando JWT, que retorna os tokens caso as credenciais sejam válidas */
       const { access, refresh } = response.data;
 
       console.log('✅ Login bem-sucedido!');
@@ -29,7 +34,10 @@ const AuthService = {
       // Salvar tokens no SecureStore
       await SecureStore.setItemAsync('access_token', access);
       await SecureStore.setItemAsync('refresh_token', refresh);
-
+      
+      // incluindo os tokens por enquanto, mas futuramente pode ser 
+      // interessante retornar o usuário logado também, 
+      // para mostrar o nome dele na tela principal do app
       return {
         success: true,
         tokens: { access, refresh },
@@ -54,6 +62,8 @@ const AuthService = {
     try {
       console.log('📝 Tentando registro...');
 
+
+      // tenta registrar o usuário com as credenciais fornecidas, usando a rota de registro do backend
       const response = await api.post('/users/register/', {
         email,
         username,
@@ -62,9 +72,11 @@ const AuthService = {
 
       console.log('✅ Registro bem-sucedido!');
 
-      // Após registro, faz login automático
+      // Após registro, faz login automático retornando login sucesso
       return await AuthService.login(email, password);
-    } catch (error) {
+    } catch (error) { 
+      // se houver erro de login ou registro, 
+      // loga o erro e retorna um objeto com success false e a mensagem de erro
       console.error('❌ Erro no registro:', error);
       return {
         success: false,
@@ -80,7 +92,7 @@ const AuthService = {
   refreshToken: async () => {
     try {
       console.log('🔄 Renovando token...');
-
+      // Busca o refresh token do SecureStore
       const refreshToken = await SecureStore.getItemAsync('refresh_token');
 
       if (!refreshToken) {
@@ -88,10 +100,13 @@ const AuthService = {
         return { success: false, error: 'Refresh token não encontrado' };
       }
 
+
+      // Faz uma requisição para a rota de renovação de token do backend, passando o refresh token
       const response = await api.post('/users/token/refresh/', {
         refresh: refreshToken,
       });
 
+      // retonrna novo access token
       const { access } = response.data;
 
       console.log('✅ Token renovado!');
@@ -117,7 +132,8 @@ const AuthService = {
   logout: async () => {
     try {
       console.log('🔓 Fazendo logout...');
-
+      
+      // Remove os tokens do SecureStore para efetuar logout
       await SecureStore.deleteItemAsync('access_token');
       await SecureStore.deleteItemAsync('refresh_token');
 
@@ -135,6 +151,10 @@ const AuthService = {
    */
   getAccessToken: async () => {
     try {
+      // metodo para buscar o access token do SecureStore, 
+      // usado para verificar se o usuário está autenticado 
+      // e para adicionar o token no header das requisições
+
       const token = await SecureStore.getItemAsync('access_token');
       return token;
     } catch (error) {
@@ -148,6 +168,8 @@ const AuthService = {
    * @returns {Promise<boolean>}
    */
   isAuthenticated: async () => {
+    // metodo de checagem de autenticação, que verifica 
+    // se existe um access token válido armazenado.
     const token = await AuthService.getAccessToken();
     return !!token;
   },
@@ -158,6 +180,8 @@ const AuthService = {
    */
   clearAuth: async () => {
     try {
+      // limpa os tokens do SecureStore, usado para garantir que 
+      // o usuário seja completamente deslogado,
       await SecureStore.deleteItemAsync('access_token');
       await SecureStore.deleteItemAsync('refresh_token');
       console.log('✅ Dados de autenticação removidos');

@@ -30,7 +30,6 @@ export default function BottomTabNavigator() {
       screenOptions={({ route }) => ({
         // Remove header das telas
         headerShown: false,
-        
         // Styling do tab bar
         tabBarStyle: {
           position: 'absolute',
@@ -60,7 +59,7 @@ export default function BottomTabNavigator() {
           } else if (route.name === 'Map') {
             icon = focused ? 'map' : 'map-outline';
           } else if (route.name === 'Tickets') {
-            icon = focused ? 'document' : 'document-outline';
+            icon = focused ? 'document' : 'pricetags-outline';
           } else if (route.name === 'Groups') {
             icon = focused ? 'people' : 'people-outline';
           }
@@ -103,7 +102,7 @@ export default function BottomTabNavigator() {
       <Tab.Screen name="BuyTickets" component={BuyTicketsScreen} />
       <Tab.Screen 
         name="Map" 
-        component={MapScreen}
+        component={MapScreen} // chama o componente do mapa, que é a tela principal do app
         options={{
           tabBarLabel: 'VibeMap', // Label personalizado para a tela principal
         }}
