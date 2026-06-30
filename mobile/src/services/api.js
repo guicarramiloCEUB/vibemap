@@ -17,7 +17,7 @@ const getApiUrl = () => {
   }
   
   // Em desenvolvimento
-  let url = 'http://10.0.2.2:8000/api';
+  let url = 'http://0.0.0.0:8000/api';
   
   // Se for iOS ou mobile físico, tentar usar o IP local
   if (Platform.OS === 'ios') {
@@ -25,7 +25,7 @@ const getApiUrl = () => {
   } else if (Platform.OS === 'android') {
     // Para Android Emulator, tentar com IP da máquina host
     // ALTERAR para o IP da sua máquina (descubra com: hostname -I)
-    url = 'http://192.168.15.101:8000/api';
+    url = 'http://192.168.15.11:8000/api';
   }
   
   console.log('🌐 API URL:', url);

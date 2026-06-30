@@ -26,7 +26,7 @@ export default function LoginScreen({ navigation }) { // navigation é uma prop 
 
       if (result.success) {
         console.log('✅ Login bem-sucedido!');
-        console.log('🔐 Access Token:', result.tokens.access.substring(0, 20) + '...');
+        console.log('🔐 Access Token:', result.tokens.access);
 
         // limpa o historico de navigação garantindo que nao retorne para a tela de login
         navigation.dispatch(

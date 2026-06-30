@@ -8,6 +8,7 @@ import BuyTicketsScreen from '../screens/BuyTicketsScreen';
 import MapScreen from '../screens/MapScreen';
 import TicketsScreen from '../screens/TicketsScreen';
 import GroupsScreen from '../screens/GroupsScreen';
+import AuthService from '../services/auth';
 
 const Tab = createBottomTabNavigator();
 
@@ -22,6 +23,13 @@ function TabBarBackground() {
     />
   );
 }
+
+const fetchUserProfile = async () => {
+  const user = await AuthService.getUser();
+  if (user) {
+    setUserProfile(user);
+  }
+};
 
 export default function BottomTabNavigator() {
   return (
@@ -102,13 +110,13 @@ export default function BottomTabNavigator() {
       <Tab.Screen name="BuyTickets" component={BuyTicketsScreen} />
       <Tab.Screen 
         name="Map" 
-        component={MapScreen} // chama o componente do mapa, que é a tela principal do app
+        component={MapScreen} 
         options={{
-          tabBarLabel: 'VibeMap', // Label personalizado para a tela principal
+          tabBarLabel: 'VibeMap',
         }}
       />
       <Tab.Screen name="Tickets" component={TicketsScreen} />
-      <Tab.Screen name="Groups" component={GroupsScreen} />
+      <Tab.Screen name="Groups" component={GroupsScreen} onPreload={fetchUserProfile} />
     </Tab.Navigator>
   );
 }

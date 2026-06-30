@@ -8,9 +8,9 @@ import Navigation from './src/navigation';
 // a partir daqui, o app se ramifica para as outras telas, através do Navigation
 export default function App() {
   return (
-    <SafeAreaProvider> // garante que o app respeite as áreas seguras do dispositivo, como a notch, etc
+    <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1 }}>
-        <Navigation /> // componente de navegação, que gerencia as telas do app
+        <Navigation />
       </SafeAreaView>
     </SafeAreaProvider>
   );

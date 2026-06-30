@@ -64,7 +64,7 @@ const AuthService = {
 
 
       // tenta registrar o usuário com as credenciais fornecidas, usando a rota de registro do backend
-      const response = await api.post('/users/register/', {
+      const response = await api.post('/users/register_user/', {
         email,
         username,
         password,
@@ -187,6 +187,29 @@ const AuthService = {
       console.log('✅ Dados de autenticação removidos');
     } catch (error) {
       console.error('❌ Erro ao limpar auth:', error);
+    }
+  },
+
+  getUser: async () => {
+    try {
+      // metodo para buscar o usuário logado, 
+      // usando o access token para autenticar a requisição
+      const token = await AuthService.getAccessToken();
+      if (!token) {
+        console.warn('⚠️  Nenhum token encontrado');
+        return null;
+      }
+
+      const response = await api.get('/users/me/', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ Erro ao buscar usuário:', error);
+      return null;
     }
   },
 };

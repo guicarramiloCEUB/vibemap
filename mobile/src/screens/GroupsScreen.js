@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, ScrollView 
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AuthService from '../services/auth';
 
 export default function GroupsScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -25,7 +26,19 @@ export default function GroupsScreen({ navigation }) {
 
   const handleLogout = () => {
     console.log('Logout pressed');
-    // logout logic later...
+    AuthService.logout().then((result) => {
+      if (result.success) {
+        console.log('✅ Logout bem-sucedido!');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        });
+      } else {
+        console.error('❌ Falha no logout:', result.error);
+      }
+    }).catch((error) => {
+      console.error('❌ Erro inesperado no logout:', error);
+    });
   };
 
   return (
@@ -57,7 +70,7 @@ export default function GroupsScreen({ navigation }) {
         {!isEditing ? (
           <View style={styles.infoSection}>
             <Text style={styles.nameText}>{userProfile.name}</Text>
-            <Text style={styles.usernameText}>{userProfile.username}</Text>
+            <Text style={styles.usernameText}>{ '@' + userProfile.username}</Text>
             <Text style={styles.bioText}>{userProfile.bio}</Text>
 
             <View style={styles.statsContainer}>

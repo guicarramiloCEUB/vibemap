@@ -1,8 +1,10 @@
-from django.urls import path
-from rest_framework.routers import DefaultRouter
+from django.urls import path, include
+from rest_framework.routers import SimpleRouter
 from events.resources import EventResources
 
-router = DefaultRouter()
+router = SimpleRouter()
 router.register(r'', EventResources, basename='event')
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('', include(router.urls)),
+]

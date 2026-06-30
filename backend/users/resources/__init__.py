@@ -1,1 +1,2 @@
-from .users import RegisterResource
+from .users import UserResource
+from .friendship import FriendshipResource

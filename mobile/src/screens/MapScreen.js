@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, PanResponder } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Mapbox from '@rnmapbox/maps';
+import Slider from '@react-native-community/slider';
 import { observer } from 'mobx-react-lite';
 import CreateEventModal from '../components/CreateEventModal';
 import LocationService from '../services/location';
@@ -18,6 +19,77 @@ export default observer(function MapScreen() {
   const [cameraReady, setCameraReady] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [zoomLevel, setZoomLevel] = useState(16);
+  const [radius, setRadius] = useState(5000); // Raio de busca em metros
+  const [showRadiusSlider, setShowRadiusSlider] = useState(false);
+  const [radiusPress, setRadiusPress] = useState(false);
+  const [radiusPressTimeout, setRadiusPressTimeout] = useState(null);
+  const [radiusPressStart, setRadiusPressStart] = useState(null);
+  const [radiusPressDuration, setRadiusPressDuration] = useState(0);
+  const [radiusPressInterval, setRadiusPressInterval] = useState(null);
+  const [radiusPressDirection, setRadiusPressDirection] = useState(null);
+  const [radiusPressLastValue, setRadiusPressLastValue] = useState(radius);
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartY, setDragStartY] = useState(0);
+  const [dragCurrentY, setDragCurrentY] = useState(0);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt, gestureState) => {
+        setIsDragging(true);
+        setDragStartY(gestureState.y0);
+        setDragCurrentY(gestureState.moveY);
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        setDragCurrentY(gestureState.moveY);
+      },
+      onPanResponderRelease: () => {
+        setIsDragging(false);
+        setDragStartY(0);
+        setDragCurrentY(0);
+      },
+    })
+  ).current;
+
+  const handleRadiusPressIn = () => {
+    setRadiusPress(true);
+    setRadiusPressStart(Date.now());
+    setRadiusPressLastValue(radius);
+
+    const interval = setInterval(() => {
+      const duration = Date.now() - radiusPressStart;
+      let newRadius = radiusPressLastValue;
+
+      if (duration > 2000) {
+        newRadius += 100; // Aumenta mais rápido após 2 segundos
+      } else if (duration > 1000) {
+        newRadius += 50; // Aumenta mais rápido após 1 segundo
+      } else {
+        newRadius += 10; // Aumenta lentamente no início
+      }
+
+      if (newRadius > 10000) newRadius = 10000; // Limite máximo
+      setRadius(newRadius);
+      setRadiusPressLastValue(newRadius);
+    }, 100);
+
+    setRadiusPressInterval(interval);
+  };
+
+  const handleRadiusPressOut = () => {
+    setRadiusPress(false);
+    clearInterval(radiusPressInterval);
+    setRadiusPressInterval(null);
+    setRadiusPressStart(null);
+    setRadiusPressDuration(0);
+  };
+
+  const handleRadiusSet = () => {
+    setShowRadiusSlider(!showRadiusSlider);
+  }
+
   const [selectedEvent, setSelectedEvent] = useState(null);
   const mapRef = useRef(null);
   const cameraRef = useRef(null);
@@ -81,12 +153,12 @@ export default observer(function MapScreen() {
       eventStore.fetchNearbyEvents(
         userLocation.latitude,
         userLocation.longitude,
-        5000 // 5km
+        radius
       ).catch(error => {
         console.error('Erro ao buscar eventos próximos:', error);
       });
     }
-  }, [userLocation]);
+  }, [userLocation, radius]);
 
   const handleCreateEvent = () => {
     setShowModal(true);
@@ -99,10 +171,11 @@ export default observer(function MapScreen() {
   const handleCenterOnUser = () => {
     if (userLocation && cameraRef.current) {
       console.log('🎯 Recentrando no usuário:', userLocation);
-      cameraRef.current.moveTo(
-        [userLocation.longitude, userLocation.latitude],
-        300 // animação de 300ms
-      );
+      cameraRef.current.setCamera({
+        centerCoordinate: [userLocation.longitude, userLocation.latitude],
+        animationDuration: 300, // animação de 300ms
+        zoomLevel: 16
+      });
     }
   };
 
@@ -360,6 +433,53 @@ export default observer(function MapScreen() {
         </LinearGradient>
       </TouchableOpacity>
 
+      <TouchableOpacity 
+        style={[styles.radiusButton]} 
+        activeOpacity={1}
+        onPress={handleRadiusSet}
+      >
+        <LinearGradient
+          colors={['#7c3aed', '#6d28d9']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.radiusButtonGradient}
+        >
+          <Ionicons name="options" size={28} color="#fff" /> 
+        </LinearGradient>
+      </TouchableOpacity>
+      <View 
+        style={{ position: 'absolute', top: 80, left: 20, right: 20, alignItems: 'center' }}
+        visible={showRadiusSlider}
+      >
+          <LinearGradient
+            colors={['#7c3aed', '#6d28d9']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ width: '100%', borderRadius: 8, paddingVertical: 4, marginBottom: 8 }}
+          >
+            <Text style={{ color: '#fff', textAlign: 'center', fontWeight: '600' }}>
+              Raio de busca: {radius} metros
+            </Text>
+            <Slider
+              style={{ width: '100%', height: 40 }}
+              onPressIn={handleRadiusPressIn}
+              onPressOut={handleRadiusPressOut}
+              panResponder={panResponder.panHandlers}
+              minimumTrackTintColor="#fff"
+              maximumTrackTintColor="#d1d5db"
+              thumbTintColor="#fff"
+              step={10}
+              minimumValue={1000}
+              maximumValue={10000}
+              value={radius}
+              onValueChange={setRadius}
+              thumbStyle={styles.sliderThumb}
+              trackStyle={styles.sliderTrack}
+            />
+          </LinearGradient>
+        </View>
+      
+
       {/* Botão flutuante para criar evento */}
       <View style={styles.fabContainer}>
         <TouchableOpacity 
@@ -588,5 +708,36 @@ const styles = StyleSheet.create({
     marginLeft: -25,
     marginTop: -25,
     zIndex: 100,
+  },
+  sliderThumb: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#7c3aed',
+  },
+  sliderTrack: {
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#d1d5db',
+  },
+  radiusButton: {
+    position: 'absolute',
+    bottom: 80,
+    left: 20,
+    zIndex: 10,
+  },
+  radiusButtonGradient: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });

@@ -1,0 +1,222 @@
+# npm audit report
+
+@babel/core  <=7.29.0
+@babel/core: Arbitrary File Read via sourceMappingURL Comment - https://github.com/advisories/GHSA-4x5r-pxfx-6jf8
+fix available via `npm audit fix`
+node_modules/@babel/core
+
+@xmldom/xmldom  <=0.8.12
+Severity: high
+xmldom: XML injection via unsafe CDATA serialization allows attacker-controlled markup insertion - https://github.com/advisories/GHSA-wh4c-j3r5-mjhp
+xmldom: Uncontrolled recursion in XML serialization leads to DoS - https://github.com/advisories/GHSA-2v35-w6hq-6mfw
+xmldom has XML injection through unvalidated DocumentType serialization - https://github.com/advisories/GHSA-f6ww-3ggp-fr8h
+xmldom has XML node injection through unvalidated processing instruction serialization - https://github.com/advisories/GHSA-x6wf-f3px-wcqx
+xmldom has XML node injection through unvalidated comment serialization - https://github.com/advisories/GHSA-j759-j44w-7fr8
+fix available via `npm audit fix`
+node_modules/@xmldom/xmldom
+
+axios  1.0.0 - 1.15.2
+Severity: high
+Axios has a NO_PROXY Hostname Normalization Bypass that Leads to SSRF - https://github.com/advisories/GHSA-3p68-rc4w-qgx5
+Axios: Authentication Bypass via Prototype Pollution Gadget in `validateStatus` Merge Strategy - https://github.com/advisories/GHSA-w9j2-pvgh-6h63
+Axios: Incomplete Fix for CVE-2025-62718 — NO_PROXY Protection Bypassed via RFC 1122 Loopback Subnet (127.0.0.0/8) in Axios 1.15.0 - https://github.com/advisories/GHSA-pmwg-cvhr-8vh7
+Axios: Invisible JSON Response Tampering via Prototype Pollution Gadget in `parseReviver` - https://github.com/advisories/GHSA-3w6x-2g7m-8v23
+Axios: Null Byte Injection via Reverse-Encoding in AxiosURLSearchParams - https://github.com/advisories/GHSA-xhjh-pmcv-23jw
+Axios: CRLF Injection in multipart/form-data body via unsanitized blob.type in formDataToStream - https://github.com/advisories/GHSA-445q-vr5w-6q77
+Axios: no_proxy bypass via IP alias allows SSRF - https://github.com/advisories/GHSA-m7pr-hjqh-92cm
+Axios' HTTP adapter-streamed uploads bypass maxBodyLength when maxRedirects: 0 - https://github.com/advisories/GHSA-5c9x-8gcm-mpgx
+Axios: HTTP adapter streamed responses bypass maxContentLength - https://github.com/advisories/GHSA-vf2m-468p-8v99
+Axios: Prototype Pollution Gadgets - Response Tampering, Data Exfiltration, and Request Hijacking - https://github.com/advisories/GHSA-pf86-5x62-jrwf
+Axios: Header Injection via Prototype Pollution - https://github.com/advisories/GHSA-6chq-wfr3-2hj9
+Axios: XSRF Token Cross-Origin Leakage via Prototype Pollution Gadget in `withXSRFToken` Boolean Coercion - https://github.com/advisories/GHSA-xx6v-rp6x-q39c
+Axios has prototype pollution read-side gadgets in HTTP adapter that allow credential injection and request hijacking - https://github.com/advisories/GHSA-q8qp-cvcw-x6jj
+Axios has Unrestricted Cloud Metadata Exfiltration via Header Injection Chain - https://github.com/advisories/GHSA-fvcv-3m26-pcqx
+axios's shouldBypassProxy does not recognize IPv4-mapped IPv6 addresses, allowing NO_PROXY bypass (incomplete fix for CVE-2025-62718) - https://github.com/advisories/GHSA-pjwm-pj3p-43mv
+Axios: unbounded recursion in toFormData causes DoS via deeply nested request data - https://github.com/advisories/GHSA-62hf-57xw-28j9
+Axios: Regular Expression Denial of Service (ReDoS) via Cookie Name Injection - https://github.com/advisories/GHSA-hfxv-24rg-xrqf
+Allocation of Resources Without Limits or Throttling in Axios - https://github.com/advisories/GHSA-777c-7fjr-54vf
+Axios: Proxy-Authorization Credential Leak to Origin Server Across HTTP-to-HTTPS Redirect in Axios Node.js HTTP Adapter - https://github.com/advisories/GHSA-p92q-9vqr-4j8v
+Axios: Proxy-Authorization header leaks to redirect target when proxy is re-evaluated to direct connection - https://github.com/advisories/GHSA-j5f8-grm9-p9fc
+axios Vulnerable to Credential Theft and Response Hijacking via Prototype Pollution Gadget in Config Merge - https://github.com/advisories/GHSA-3g43-6gmg-66jw
+axios Vulnerable to Full Man-in-the-Middle via Prototype Pollution Gadget in `config.proxy` - https://github.com/advisories/GHSA-35jp-ww65-95wh
+axios has DoS & Header Injection via Prototype Pollution Read-Side Gadgets in axios merge functions - https://github.com/advisories/GHSA-898c-q2cr-xwhg
+fix available via `npm audit fix`
+node_modules/axios
+
+brace-expansion  <=1.1.12 || 2.0.0 - 2.0.2 || 5.0.2 - 5.0.5
+Severity: moderate
+brace-expansion: Zero-step sequence causes process hang and memory exhaustion - https://github.com/advisories/GHSA-f886-m6hf-6m8v
+brace-expansion: Zero-step sequence causes process hang and memory exhaustion - https://github.com/advisories/GHSA-f886-m6hf-6m8v
+brace-expansion: Large numeric range defeats documented `max` DoS protection - https://github.com/advisories/GHSA-jxxr-4gwj-5jf2
+fix available via `npm audit fix`
+node_modules/brace-expansion
+node_modules/expo/node_modules/brace-expansion
+node_modules/glob/node_modules/brace-expansion
+node_modules/react-native/node_modules/brace-expansion
+node_modules/rimraf/node_modules/brace-expansion
+node_modules/test-exclude/node_modules/brace-expansion
+
+fast-xml-builder  <=1.1.6
+Severity: high
+fast-xml-builder allows attribute values with unwanted quotes to bypass malicious or unwanted attributes - https://github.com/advisories/GHSA-5wm8-gmm8-39j9
+fast-xml-builder Comment Value regex can be bypassed - https://github.com/advisories/GHSA-45c6-75p6-83cc
+fix available via `npm audit fix`
+node_modules/fast-xml-builder
+
+follow-redirects  <=1.15.11
+Severity: moderate
+follow-redirects leaks Custom Authentication Headers to Cross-Domain Redirect Targets - https://github.com/advisories/GHSA-r4q5-vmmm-2653
+fix available via `npm audit fix`
+node_modules/follow-redirects
+
+form-data  4.0.0 - 4.0.5
+Severity: high
+form-data: CRLF injection in form-data via unescaped multipart field names and filenames - https://github.com/advisories/GHSA-hmw2-7cc7-3qxx
+fix available via `npm audit fix`
+node_modules/form-data
+
+joi  <17.13.4
+Severity: moderate
+joi has an uncaught RangeError on deeply nested input through recursive `link()` schemas - https://github.com/advisories/GHSA-q7cg-457f-vx79
+fix available via `npm audit fix`
+node_modules/joi
+
+js-yaml  <=4.1.1
+Severity: moderate
+JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases - https://github.com/advisories/GHSA-h67p-54hq-rp68
+fix available via `npm audit fix --force`
+Will install react-native@0.86.0, which is a breaking change
+node_modules/@expo/xcpretty/node_modules/js-yaml
+node_modules/cosmiconfig/node_modules/js-yaml
+node_modules/js-yaml
+  @istanbuljs/load-nyc-config  *
+  Depends on vulnerable versions of js-yaml
+  node_modules/@istanbuljs/load-nyc-config
+    babel-plugin-istanbul  >=6.0.0-beta.0
+    Depends on vulnerable versions of @istanbuljs/load-nyc-config
+    node_modules/babel-plugin-istanbul
+      @jest/transform  >=25.1.0
+      Depends on vulnerable versions of babel-plugin-istanbul
+      node_modules/@jest/transform
+      babel-jest  >=25.1.0
+      Depends on vulnerable versions of @jest/transform
+      Depends on vulnerable versions of babel-plugin-istanbul
+      node_modules/babel-jest
+        react-native  0.76.0-nightly-20240627-TEMP - 0.85.0-rc.7
+        Depends on vulnerable versions of babel-jest
+        node_modules/react-native
+          react-native-reanimated  4.1.7 || 4.2.3 || 4.4.0-nightly-20260325-414e8adaf - 4.4.0-nightly-20260524-7c5580346
+          Depends on vulnerable versions of react-native
+          node_modules/react-native-reanimated
+
+launch-editor  <=2.14.0
+Severity: moderate
+launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows - https://github.com/advisories/GHSA-v6wh-96g9-6wx3
+fix available via `npm audit fix`
+node_modules/launch-editor
+
+postcss  <8.5.10
+Severity: moderate
+PostCSS has XSS via Unescaped </style> in its CSS Stringify Output - https://github.com/advisories/GHSA-qx2v-qp2m-jg93
+fix available via `npm audit fix --force`
+Will install expo@56.0.12, which is a breaking change
+node_modules/postcss
+  @expo/metro-config  <=0.0.1-canary-20240418-8d74597 || >=0.1.49-alpha.0
+  Depends on vulnerable versions of @expo/config
+  Depends on vulnerable versions of postcss
+  node_modules/expo/node_modules/@expo/metro-config
+    @expo/cli  <=0.0.0-canary-20231123-1b19f96-4 || >=0.0.1-canary-20231125-d600e44
+    Depends on vulnerable versions of @expo/config
+    Depends on vulnerable versions of @expo/config-plugins
+    Depends on vulnerable versions of @expo/metro-config
+    Depends on vulnerable versions of @expo/prebuild-config
+    node_modules/expo/node_modules/@expo/cli
+      expo  >=41.0.0-alpha.0
+      Depends on vulnerable versions of @expo/cli
+      Depends on vulnerable versions of @expo/config
+      Depends on vulnerable versions of @expo/config-plugins
+      Depends on vulnerable versions of @expo/metro-config
+      Depends on vulnerable versions of expo-asset
+      Depends on vulnerable versions of expo-constants
+      node_modules/expo
+
+qs  6.11.1 - 6.15.1
+Severity: moderate
+qs has a remotely triggerable DoS: qs.stringify crashes with TypeError on null/undefined entries in comma-format arrays when encodeValuesOnly is set - https://github.com/advisories/GHSA-q8mj-m7cp-5q26
+fix available via `npm audit fix`
+node_modules/qs
+
+shell-quote  1.1.0 - 1.8.3
+Severity: critical
+shell-quote quote() does not escape newlines in object .op values - https://github.com/advisories/GHSA-w7jw-789q-3m8p
+fix available via `npm audit fix`
+node_modules/shell-quote
+
+tar  <=7.5.15
+Severity: moderate
+node-tar applies PAX size override to intermediary GNU long-name/long-link headers, causing tar parser interpretation differential (file smuggling) - https://github.com/advisories/GHSA-vmf3-w455-68vh
+fix available via `npm audit fix`
+node_modules/tar
+
+undici  <=6.26.0
+Severity: high
+undici vulnerable to HTTP header injection via Set-Cookie percent-decoding - https://github.com/advisories/GHSA-p88m-4jfj-68fv
+undici WebSocket client vulnerable to denial of service via fragment count bypass - https://github.com/advisories/GHSA-vxpw-j846-p89q
+undici vulnerable to HTTP response queue poisoning via keep-alive socket reuse - https://github.com/advisories/GHSA-35p6-xmwp-9g52
+undici vulnerable to Set-Cookie SameSite attribute downgrade via permissive substring matching - https://github.com/advisories/GHSA-g8m3-5g58-fq7m
+fix available via `npm audit fix`
+node_modules/undici
+
+uuid  <11.1.1
+Severity: moderate
+uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided - https://github.com/advisories/GHSA-w5hq-g745-h8pq
+fix available via `npm audit fix --force`
+Will install expo@56.0.12, which is a breaking change
+node_modules/uuid
+node_modules/xcode/node_modules/uuid
+  @expo/ngrok  *
+  Depends on vulnerable versions of uuid
+  node_modules/@expo/ngrok
+  xcode  >=0.9.2
+  Depends on vulnerable versions of uuid
+  node_modules/xcode
+    @expo/config-plugins  *
+    Depends on vulnerable versions of xcode
+    node_modules/@expo/config-plugins
+      @expo/config  <=0.0.1-canary-20240418-8d74597 || >=3.3.23-alpha.0
+      Depends on vulnerable versions of @expo/config-plugins
+      node_modules/@expo/config
+        expo-constants  <=0.0.1-canary-20240418-8d74597 || 10.1.2 - 55.0.14 || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d
+        Depends on vulnerable versions of @expo/config
+        node_modules/expo-constants
+          expo-asset  <=0.0.1-canary-20240418-8d74597 || 8.6.1 - 55.0.0-canary-20260223-05214f1 || 55.0.3-canary-20260128-67ce8d5 || 55.0.8-canary-20260424-7bedc9d - 55.0.8-canary-20260429-a5e59cf || 55.0.11-canary-20260327-0789fbc - 55.0.11-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d
+          Depends on vulnerable versions of expo-constants
+          node_modules/expo-asset
+      @expo/prebuild-config  *
+      Depends on vulnerable versions of @expo/config
+      Depends on vulnerable versions of @expo/config-plugins
+      node_modules/expo/node_modules/@expo/cli/node_modules/@expo/prebuild-config
+
+ws  6.0.0 - 6.2.3 || 7.0.0 - 7.5.10 || 8.0.0 - 8.20.1
+Severity: high
+ws: Uninitialized memory disclosure - https://github.com/advisories/GHSA-58qx-3vcg-4xpx
+ws: Memory exhaustion DoS from tiny fragments and data chunks - https://github.com/advisories/GHSA-96hv-2xvq-fx4p
+ws: Memory exhaustion DoS from tiny fragments and data chunks - https://github.com/advisories/GHSA-96hv-2xvq-fx4p
+ws: Memory exhaustion DoS from tiny fragments and data chunks - https://github.com/advisories/GHSA-96hv-2xvq-fx4p
+fix available via `npm audit fix`
+node_modules/@react-native-community/cli-server-api/node_modules/ws
+node_modules/@react-native/dev-middleware/node_modules/ws
+node_modules/expo/node_modules/ws
+node_modules/react-native/node_modules/ws
+node_modules/ws
+
+33 vulnerabilities (1 low, 25 moderate, 6 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues possible (including breaking changes), run:
+  npm audit fix --force
+
+Some issues need review, and may require choosing
+a different dependency.

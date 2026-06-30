@@ -15,7 +15,7 @@ events_data = [
     {
         "title": "Show da Banda XYZ",
         "description": "Venha se divertir com a gente!",
-        "location": Point(-47.895, -15.770),
+        "location": Point(-43.189, -22.951),
         "location_name": "Bar do Centro",
         "starts_at": datetime(2026, 5, 5, 20, 0, 0),
         "ends_at": datetime(2026, 5, 5, 23, 0, 0),
@@ -25,7 +25,7 @@ events_data = [
     {
         "title": "Happy Hour Clássico",
         "description": "Cerveja gelada e música ao vivo",
-        "location": Point(-47.880, -15.765),
+        "location": Point(-43.185, -22.953),
         "location_name": "Pub da Asa Norte",
         "starts_at": datetime(2026, 5, 5, 18, 30, 0),
         "ends_at": datetime(2026, 5, 5, 21, 30, 0),
@@ -35,7 +35,7 @@ events_data = [
     {
         "title": "Noite de Forró",
         "description": "Dança e diversão garantida",
-        "location": Point(-47.905, -15.790),
+        "location": Point(-43.192, -22.955),
         "location_name": "Festa no Deck",
         "starts_at": datetime(2026, 5, 5, 22, 0, 0),
         "ends_at": datetime(2026, 5, 6, 2, 0, 0),
@@ -45,7 +45,7 @@ events_data = [
     {
         "title": "Live Music Night",
         "description": "Ambiente animado e seguro",
-        "location": Point(-47.870, -15.775),
+        "location": Point(-43.187, -22.950),
         "location_name": "Casa de Shows",
         "starts_at": datetime(2026, 5, 5, 21, 0, 0),
         "ends_at": datetime(2026, 5, 6, 0, 0, 0),
@@ -55,7 +55,7 @@ events_data = [
     {
         "title": "Samba com Galera",
         "description": "Promoção de drinks",
-        "location": Point(-47.915, -15.810),
+        "location": Point(-43.194, -22.956),
         "location_name": "Roda de Samba",
         "starts_at": datetime(2026, 5, 5, 23, 0, 0),
         "ends_at": datetime(2026, 5, 6, 3, 0, 0),
@@ -65,7 +65,7 @@ events_data = [
     {
         "title": "Noite Eletrônica",
         "description": "DJ ao vivo até o amanhecer",
-        "location": Point(-47.885, -15.820),
+        "location": Point(-43.184, -22.954),
         "location_name": "Boate Club",
         "starts_at": datetime(2026, 5, 6, 0, 0, 0),
         "ends_at": datetime(2026, 5, 6, 5, 0, 0),
@@ -75,7 +75,7 @@ events_data = [
     {
         "title": "Karaokê",
         "description": "Cante e divirta-se!",
-        "location": Point(-47.875, -15.745),
+        "location": Point(-43.195, -22.952),
         "location_name": "Karaokê Downtown",
         "starts_at": datetime(2026, 5, 5, 20, 30, 0),
         "ends_at": datetime(2026, 5, 5, 23, 30, 0),
@@ -85,7 +85,7 @@ events_data = [
     {
         "title": "Comedy Show",
         "description": "Muito bom para rir",
-        "location": Point(-47.920, -15.795),
+        "location": Point(-43.191, -22.957),
         "location_name": "Teatro da Asa",
         "starts_at": datetime(2026, 5, 5, 19, 0, 0),
         "ends_at": datetime(2026, 5, 5, 21, 0, 0),
@@ -95,7 +95,7 @@ events_data = [
     {
         "title": "Jazz Night",
         "description": "Música sofisticada",
-        "location": Point(-47.882, -15.788),
+        "location": Point(-43.186, -22.951),
         "location_name": "Jazz Club",
         "starts_at": datetime(2026, 5, 5, 21, 30, 0),
         "ends_at": datetime(2026, 5, 6, 0, 30, 0),
@@ -105,25 +105,14 @@ events_data = [
     {
         "title": "Beer Pong Tournament",
         "description": "Competição de cerveja",
-        "location": Point(-47.895, -15.760),
+        "location": Point(-43.189, -22.953),
         "location_name": "Sports Bar",
         "starts_at": datetime(2026, 5, 5, 20, 0, 0),
         "ends_at": datetime(2026, 5, 5, 23, 0, 0),
         "max_participants": 50,
         "event_type": 2,
     },
-    {
-        "title": "Drinks & Beats",
-        "description": "Open bar até meia-noite",
-        "location": Point(-47.910, -15.805),
-        "location_name": "Sky Lounge",
-        "starts_at": datetime(2026, 5, 5, 22, 30, 0),
-        "ends_at": datetime(2026, 5, 6, 1, 30, 0),
-        "max_participants": 180,
-        "event_type": 4,
-    },
 ]
-
 # Obter primeiro usuário (ou criar se não existir)
 try:
     user = User.objects.first()

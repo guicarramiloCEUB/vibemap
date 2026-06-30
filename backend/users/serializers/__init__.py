@@ -1,2 +1,3 @@
 # __init__.py
-from .users import RegisterSerializer
+from .users import UserSerializer
+from .friendship import FriendshipSerializer
