@@ -4,7 +4,7 @@ import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { observer } from 'mobx-react-lite';
 import AuthInput from './AuthInput';
-import { eventStore } from '../stores/EventStore';
+import { eventStore } from '../stores';
 import LocationService from '../services/location';
 
 export default observer(function CreateEventModal({ visible, onClose }) {

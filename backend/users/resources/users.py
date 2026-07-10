@@ -30,5 +30,16 @@ class UserResource(viewsets.ViewSet):
         if user:
             return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
         return Response({"detail": "Usuário não autenticado."}, status=status.HTTP_401_UNAUTHORIZED)
-    
+
+    @transaction.atomic
+    @action(detail=False, methods=['put'], url_path='update_user')
+    def update_user(self, request):
+        user = self.service.get_logged_in_user(request)
+        if not user:
+            return Response({"detail": "Usuário não autenticado."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        updated_user = self.service.update_user(user, serializer.validated_data)
+        return Response(UserSerializer(updated_user).data, status=status.HTTP_200_OK)
     

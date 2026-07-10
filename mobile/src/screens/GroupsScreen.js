@@ -1,34 +1,121 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { observer } from 'mobx-react-lite';
+import * as ImagePicker from 'expo-image-picker';
 import AuthService from '../services/auth';
+import { useStore } from '../stores';
 
-export default function GroupsScreen({ navigation }) {
+function GroupsScreen({ navigation }) {
   const insets = useSafeAreaInsets();
+  const { userStore } = useStore();
   const [isEditing, setIsEditing] = useState(false);
-  
-  // Mock de dados do usuário
-  const [userProfile, setUserProfile] = useState({
-    name: 'Guilherme Carramilo',
-    username: '@guicarramilo',
-    bio: 'Desenvolvedor e apreciador de bons rolês na cidade. 🗺️🚀\nVamos explorar os melhores eventos!',
-    email: 'guicarramilo@nearvibe.com'
+  const [form, setForm] = useState({
+    username: '',
+    email: '',
+    bio: '',
+    avatarBase64: null,
+    avatarMimeType: 'image/jpeg',
   });
 
-  const [form, setForm] = useState(userProfile);
+  useEffect(() => {
+    if (!userStore.userProfile && !userStore.loading) {
+      userStore.fetchUserProfile();
+    }
+  }, [userStore]);
 
-  const handleSave = () => {
-    setUserProfile(form);
-    setIsEditing(false);
+  useEffect(() => {
+    if (userStore.userProfile) {
+      setForm({
+        username: userStore.userProfile.username || '',
+        email: userStore.userProfile.email || '',
+        bio: userStore.userProfile.bio || 'Sem bio cadastrada ainda.',
+        avatarBase64: null,
+        avatarMimeType: userStore.userProfile.avatar_mime_type || 'image/jpeg',
+      });
+    }
+  }, [userStore.userProfile]);
+
+  const eventCount = userStore.userProfile?.event_count ?? 0;
+  const friendCount = userStore.userProfile?.friend_count ?? 0;
+
+  const getAvatarSource = () => {
+    if (form.avatarBase64) {
+      return { uri: `data:${form.avatarMimeType || 'image/jpeg'};base64,${form.avatarBase64}` };
+    }
+
+    const storedAvatar = userStore.userProfile?.avatar_url;
+    if (storedAvatar) {
+      const storedMimeType = userStore.userProfile?.avatar_mime_type || 'image/jpeg';
+      return { uri: `data:${storedMimeType};base64,${storedAvatar}` };
+    }
+
+    return require('../../assets/backgrounds/login-background.png');
   };
 
-  const handleLogout = () => {
+  const handlePickAvatar = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert('Permissão necessária', 'Precisamos acessar sua galeria para atualizar a foto do perfil.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+      base64: true,
+    });
+
+    if (result.canceled) {
+      return;
+    }
+
+    const asset = result.assets?.[0];
+    if (!asset?.base64) {
+      Alert.alert('Erro', 'Não foi possível ler a imagem selecionada.');
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      avatarBase64: asset.base64,
+      avatarMimeType: asset.mimeType || 'image/jpeg',
+    }));
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      const payload = {
+        username: form.username,
+        bio: form.bio,
+      };
+
+      if (form.avatarBase64) {
+        payload.avatar_url = form.avatarBase64;
+        payload.avatar_mime_type = form.avatarMimeType;
+      }
+
+      await userStore.updateUserProfile(payload);
+      setIsEditing(false);
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível salvar seu perfil.');
+    }
+  };
+
+  const handleLogout = async () => {
     console.log('Logout pressed');
-    AuthService.logout().then((result) => {
+
+    try {
+      const result = await AuthService.logout();
       if (result.success) {
         console.log('✅ Logout bem-sucedido!');
+        userStore.clearStore();
         navigation.reset({
           index: 0,
           routes: [{ name: 'Login' }],
@@ -36,56 +123,53 @@ export default function GroupsScreen({ navigation }) {
       } else {
         console.error('❌ Falha no logout:', result.error);
       }
-    }).catch((error) => {
+    } catch (error) {
       console.error('❌ Erro inesperado no logout:', error);
-    });
+    }
   };
+
+  const profileUsername = form.username || userStore.userProfile?.username || 'perfil';
+  const profileEmail = form.email || userStore.userProfile?.email || '';
+  const profileBio = form.bio || userStore.userProfile?.bio || 'Sem bio cadastrada ainda.';
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 20) }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Meu Perfil</Text>
           <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.headerBtn}>
-            <Ionicons name={isEditing ? "close" : "create-outline"} size={22} color="#5b21b6" />
+            <Ionicons name={isEditing ? 'close' : 'create-outline'} size={22} color="#5b21b6" />
           </TouchableOpacity>
         </View>
 
-        {/* Avatar Section */}
         <View style={styles.avatarSection}>
           <LinearGradient colors={['#8b5cf6', '#5b21b6']} style={styles.avatarBorder}>
-            <Image 
-              source={require('../../assets/backgrounds/login-background.png')}
-              style={styles.avatarImage}
-            />
+            <Image source={getAvatarSource()} style={styles.avatarImage} />
           </LinearGradient>
-          <TouchableOpacity style={styles.changeAvatarBtn}>
+          <TouchableOpacity style={styles.changeAvatarBtn} onPress={handlePickAvatar}>
             <Ionicons name="camera" size={16} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        {/* Content Toggle */}
-        {!isEditing ? (
+        {userStore.loading && !userStore.userProfile ? (
+          <View style={styles.loadingSection}>
+            <ActivityIndicator size="large" color="#5b21b6" />
+            <Text style={styles.loadingText}>Carregando perfil...</Text>
+          </View>
+        ) : !isEditing ? (
           <View style={styles.infoSection}>
-            <Text style={styles.nameText}>{userProfile.name}</Text>
-            <Text style={styles.usernameText}>{ '@' + userProfile.username}</Text>
-            <Text style={styles.bioText}>{userProfile.bio}</Text>
+            <Text style={styles.nameText}>{profileUsername}</Text>
+            <Text style={styles.usernameText}>{profileEmail || `@${profileUsername}`}</Text>
+            <Text style={styles.bioText}>{profileBio}</Text>
 
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>12</Text>
+                <Text style={styles.statNumber}>{eventCount}</Text>
                 <Text style={styles.statLabel}>Eventos</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>145</Text>
-                <Text style={styles.statLabel}>Seguindo</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>89</Text>
+                <Text style={styles.statNumber}>{friendCount}</Text>
                 <Text style={styles.statLabel}>Seguidores</Text>
               </View>
             </View>
@@ -98,7 +182,7 @@ export default function GroupsScreen({ navigation }) {
                 <Text style={styles.actionText}>Configurações</Text>
                 <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
               </TouchableOpacity>
-              
+
               <TouchableOpacity style={styles.actionButton}>
                 <View style={[styles.actionIconBg, { backgroundColor: '#fdf4ff' }]}>
                   <Ionicons name="bookmark-outline" size={20} color="#c026d3" />
@@ -117,38 +201,36 @@ export default function GroupsScreen({ navigation }) {
           </View>
         ) : (
           <View style={styles.formSection}>
-            <Text style={styles.label}>Nome</Text>
-            <TextInput 
-              style={styles.input}
-              value={form.name}
-              onChangeText={(text) => setForm({...form, name: text})}
-              placeholder="Seu nome"
-            />
-
             <Text style={styles.label}>Username</Text>
-            <TextInput 
+            <TextInput
               style={styles.input}
               value={form.username}
-              onChangeText={(text) => setForm({...form, username: text})}
-              placeholder="@username"
+              onChangeText={(text) => setForm({ ...form, username: text })}
+              placeholder="Seu username"
             />
 
             <Text style={styles.label}>Bio</Text>
-            <TextInput 
+            <TextInput
               style={[styles.input, styles.bioInput]}
               multiline
               numberOfLines={3}
               value={form.bio}
-              onChangeText={(text) => setForm({...form, bio: text})}
+              onChangeText={(text) => setForm({ ...form, bio: text })}
               placeholder="Fale um sobre você..."
             />
 
             <Text style={styles.label}>Email</Text>
-            <TextInput 
+            <TextInput
               style={[styles.input, styles.disabledInput]}
               value={form.email}
               editable={false}
             />
+
+            <TouchableOpacity style={styles.avatarButton} onPress={handlePickAvatar}>
+              <LinearGradient colors={['#8b5cf6', '#5b21b6']} style={styles.saveGradient}>
+                <Text style={styles.saveButtonText}>Trocar foto do perfil</Text>
+              </LinearGradient>
+            </TouchableOpacity>
 
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <LinearGradient colors={['#8b5cf6', '#5b21b6']} style={styles.saveGradient}>
@@ -157,7 +239,6 @@ export default function GroupsScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         )}
-
       </ScrollView>
     </View>
   );
@@ -223,6 +304,17 @@ const styles = StyleSheet.create({
   },
   infoSection: {
     alignItems: 'center',
+  },
+  loadingSection: {
+    paddingVertical: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#475569',
+    fontSize: 15,
+    fontWeight: '600',
   },
   nameText: {
     fontSize: 24,
@@ -365,9 +457,21 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
   },
+  avatarButton: {
+    marginTop: 20,
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#5b21b6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 8,
+    elevation: 3,
+  },
   saveButtonText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '700',
-  }
+  },
 });
+
+export default observer(GroupsScreen);

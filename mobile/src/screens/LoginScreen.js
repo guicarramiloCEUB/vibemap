@@ -3,12 +3,14 @@ import { Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { CommonActions } from '@react-navigation/native'; // serve para resetar a pilha de navegação, ou seja, quando o usuário fizer login, ele não vai conseguir voltar pra tela de login usando o botão de voltar do celular
 import { AuthLayout, AuthInput, AuthButton } from '../components';
 import AuthService from '../services/auth';
+import { useStore } from '../stores';
 
 export default function LoginScreen({ navigation }) { // navigation é uma prop que o react-navigation passa pra todas as telas, e serve para navegar entre as telas do app
   // usStates para armazenar o email, senha, e estado de loading do login
   const [email, setEmail] = useState(''); // inicializa email como string vazia, e setEmail como função para atualizar o email
   const [senha, setSenha] = useState(''); // inicializa senha como string vazia, e setSenha como função para atualizar a senha
   const [loading, setLoading] = useState(false); // inicializa loading como false, e setLoading como função para atualizar o estado de loading
+  const { userStore } = useStore();
 
   const handleLogin = async () => { // async significa que essa função é assíncrona, ou seja, ela pode esperar por promessas (como a resposta do servidor) sem bloquear a interface do usuário
     
@@ -27,6 +29,12 @@ export default function LoginScreen({ navigation }) { // navigation é uma prop 
       if (result.success) {
         console.log('✅ Login bem-sucedido!');
         console.log('🔐 Access Token:', result.tokens.access);
+
+        try {
+          await userStore.fetchUserProfile();
+        } catch (profileError) {
+          console.warn('⚠️ Não foi possível carregar o perfil logo após o login:', profileError);
+        }
 
         // limpa o historico de navigação garantindo que nao retorne para a tela de login
         navigation.dispatch(
@@ -49,7 +57,7 @@ export default function LoginScreen({ navigation }) { // navigation é uma prop 
   };
 
   return (
-    <AuthLayout> {/* componente de layout que envolve tudo */}
+    <AuthLayout>
       <Text style={styles.title}>Sign In</Text>
 
       <AuthInput 

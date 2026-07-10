@@ -1,11 +1,32 @@
 """
-Script para popular banco com eventos mock
+Script para popular banco com usuários e eventos mock.
 Execute: python manage.py shell < create_mock_events.py
 """
 from datetime import datetime, timedelta
 from django.contrib.gis.geos import Point
 from events.models import Event, EventType
 from users.models import User
+
+# Criar usuários de teste
+created_users = 0
+test_password = "123456"
+
+for index in range(1, 36):
+    email = f"teste{index}@gmail.com"
+    username = f"teste{index}"
+
+    user, created = User.objects.get_or_create(
+        email=email,
+        defaults={"username": username},
+    )
+
+    if created:
+        user.set_password(test_password)
+        user.save(update_fields=["password"])
+        created_users += 1
+        print(f"✅ Usuário criado: {email}")
+    else:
+        print(f"ℹ️ Usuário já existe: {email}")
 
 # Limpar eventos antigos
 Event.objects.all().delete()
@@ -113,17 +134,12 @@ events_data = [
         "event_type": 2,
     },
 ]
-# Obter primeiro usuário (ou criar se não existir)
+# Obter primeiro usuário para associar aos eventos
 try:
-    user = User.objects.first()
+    user = User.objects.filter(email="teste1@gmail.com").first() or User.objects.first()
     if not user:
-        print("📝 Nenhum usuário encontrado. Criando usuário de teste...")
-        user = User.objects.create_user(
-            email="test@vibemap.com",
-            username="vibemap_test",
-            password="testpass123"
-        )
-        print(f"✅ Usuário de teste criado: {user.email}")
+        print("❌ Nenhum usuário encontrado para criar eventos")
+        exit(1)
 except Exception as e:
     print(f"❌ Erro ao buscar/criar usuário: {str(e)}")
     exit(1)
@@ -143,4 +159,5 @@ for data in events_data:
     except Exception as e:
         print(f"❌ Erro ao criar evento: {str(e)}")
 
-print(f"\n✨ Total de eventos criados: {created}")
+print(f"\n✨ Total de usuários criados: {created_users}")
+print(f"✨ Total de eventos criados: {created}")

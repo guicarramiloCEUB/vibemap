@@ -212,6 +212,29 @@ const AuthService = {
       return null;
     }
   },
+
+  updateUser: async (updatedData) => {
+    try {
+      // metodo para atualizar o usuário logado, 
+      // usando o access token para autenticar a requisição
+      const token = await AuthService.getAccessToken();
+      if (!token) {
+        console.warn('⚠️  Nenhum token encontrado');
+        return null;
+      }
+
+      const response = await api.put('/users/update_user/', updatedData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ Erro ao atualizar usuário:', error);
+      return null;
+    }
+  }
 };
 
 export default AuthService;

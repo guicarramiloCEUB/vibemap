@@ -22,7 +22,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=50, unique=True)
     bio = models.TextField(blank=True, null=True)
-    avatar_url = models.URLField(blank=True, null=True)
+    avatar_url = models.BinaryField(blank=True, null=True)
+    avatar_mime_type = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     is_active = models.BooleanField(default=True)

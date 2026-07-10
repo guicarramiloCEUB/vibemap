@@ -3,11 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Pan
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Mapbox from '@rnmapbox/maps';
-import Slider from '@react-native-community/slider';
 import { observer } from 'mobx-react-lite';
 import CreateEventModal from '../components/CreateEventModal';
 import LocationService from '../services/location';
-import { eventStore } from '../stores/EventStore';
+import { eventStore } from '../stores';
 
 // Configurar token do Mapbox
 Mapbox.setAccessToken('pk.eyJ1IjoiZ3VpY2FycmFtaWxvIiwiYSI6ImNtaXFhODNqZjBkcm4zY3B2bzFiZTkxNGEifQ.uMWfSP6tLfHIdBmDDN0d9g');
@@ -20,18 +19,18 @@ export default observer(function MapScreen() {
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [zoomLevel, setZoomLevel] = useState(16);
   const [radius, setRadius] = useState(5000); // Raio de busca em metros
-  const [showRadiusSlider, setShowRadiusSlider] = useState(false);
-  const [radiusPress, setRadiusPress] = useState(false);
-  const [radiusPressTimeout, setRadiusPressTimeout] = useState(null);
-  const [radiusPressStart, setRadiusPressStart] = useState(null);
-  const [radiusPressDuration, setRadiusPressDuration] = useState(0);
-  const [radiusPressInterval, setRadiusPressInterval] = useState(null);
-  const [radiusPressDirection, setRadiusPressDirection] = useState(null);
-  const [radiusPressLastValue, setRadiusPressLastValue] = useState(radius);
+  const [showRadiusMenu, setShowRadiusMenu] = useState(false);
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartY, setDragStartY] = useState(0);
   const [dragCurrentY, setDragCurrentY] = useState(0);
+
+  const radiusOptions = [
+    { label: '3km', value: 3000 },
+    { label: '5km', value: 5000 },
+    { label: '7km', value: 7000 },
+    { label: '10km', value: 10000 },
+  ];
 
   const panResponder = useRef(
     PanResponder.create({
@@ -53,42 +52,14 @@ export default observer(function MapScreen() {
     })
   ).current;
 
-  const handleRadiusPressIn = () => {
-    setRadiusPress(true);
-    setRadiusPressStart(Date.now());
-    setRadiusPressLastValue(radius);
-
-    const interval = setInterval(() => {
-      const duration = Date.now() - radiusPressStart;
-      let newRadius = radiusPressLastValue;
-
-      if (duration > 2000) {
-        newRadius += 100; // Aumenta mais rápido após 2 segundos
-      } else if (duration > 1000) {
-        newRadius += 50; // Aumenta mais rápido após 1 segundo
-      } else {
-        newRadius += 10; // Aumenta lentamente no início
-      }
-
-      if (newRadius > 10000) newRadius = 10000; // Limite máximo
-      setRadius(newRadius);
-      setRadiusPressLastValue(newRadius);
-    }, 100);
-
-    setRadiusPressInterval(interval);
+  const handleRadiusToggle = () => {
+    setShowRadiusMenu((current) => !current);
   };
 
-  const handleRadiusPressOut = () => {
-    setRadiusPress(false);
-    clearInterval(radiusPressInterval);
-    setRadiusPressInterval(null);
-    setRadiusPressStart(null);
-    setRadiusPressDuration(0);
+  const handleRadiusSelect = (value) => {
+    setRadius(value);
+    setShowRadiusMenu(false);
   };
-
-  const handleRadiusSet = () => {
-    setShowRadiusSlider(!showRadiusSlider);
-  }
 
   const [selectedEvent, setSelectedEvent] = useState(null);
   const mapRef = useRef(null);
@@ -113,7 +84,7 @@ export default observer(function MapScreen() {
         properties: {
           id: event.id,
           title: event.title,
-          intensity: 1, // Peso uniforme, pode variar por tipo de evento
+          intensity: 1,
         },
       }));
 
@@ -132,7 +103,6 @@ export default observer(function MapScreen() {
         setUserLocation(location);
       } catch (error) {
         console.error('❌ Erro ao obter localização:', error);
-        // Fallback: Brasília
         console.log('Usando fallback: Brasília');
         setUserLocation({
           latitude: -15.8,
@@ -204,6 +174,12 @@ export default observer(function MapScreen() {
     }
   };
 
+  const handleMapPress = () => {
+    if (selectedEvent) {
+      setSelectedEvent(null);
+    }
+  };
+
   const handlePinPress = (eventItem) => {
     if (!eventItem?.location?.coordinates || !cameraRef.current) return;
 
@@ -231,6 +207,7 @@ export default observer(function MapScreen() {
         style={styles.map}
         styleURL="mapbox://styles/mapbox/standard"
         scaleBarEnabled={false}
+        onPress={handleMapPress}
         onDidFinishLoadingMap={() => {
           console.log('📍 Mapa Mapbox Standard carregado');
           setCameraReady(true);
@@ -433,53 +410,52 @@ export default observer(function MapScreen() {
         </LinearGradient>
       </TouchableOpacity>
 
-      <TouchableOpacity 
-        style={[styles.radiusButton]} 
-        activeOpacity={1}
-        onPress={handleRadiusSet}
-      >
-        <LinearGradient
-          colors={['#7c3aed', '#6d28d9']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.radiusButtonGradient}
+      <View style={styles.radiusMenuContainer} pointerEvents="box-none">
+        {showRadiusMenu && (
+          <View style={styles.radiusOptionsPanel}>
+            <View style={styles.radiusOptionsHeader}>
+              <Text style={styles.radiusOptionsTitle}>Filtrar raio</Text>
+              <TouchableOpacity onPress={handleRadiusToggle} style={styles.radiusCloseButton}>
+                <Ionicons name="close" size={18} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            {radiusOptions.map((option) => {
+              const isActive = radius === option.value;
+
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[styles.radiusOption, isActive && styles.radiusOptionActive]}
+                  onPress={() => handleRadiusSelect(option.value)}
+                  activeOpacity={0.85}
+                >
+                  <Text style={[styles.radiusOptionText, isActive && styles.radiusOptionTextActive]}>
+                    {option.label}
+                  </Text>
+                  {isActive && <Ionicons name="checkmark" size={18} color="#5b21b6" />}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={styles.radiusButton}
+          activeOpacity={1}
+          onPress={handleRadiusToggle}
         >
-          <Ionicons name="options" size={28} color="#fff" /> 
-        </LinearGradient>
-      </TouchableOpacity>
-      <View 
-        style={{ position: 'absolute', top: 80, left: 20, right: 20, alignItems: 'center' }}
-        visible={showRadiusSlider}
-      >
           <LinearGradient
             colors={['#7c3aed', '#6d28d9']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{ width: '100%', borderRadius: 8, paddingVertical: 4, marginBottom: 8 }}
+            style={styles.radiusButtonGradient}
           >
-            <Text style={{ color: '#fff', textAlign: 'center', fontWeight: '600' }}>
-              Raio de busca: {radius} metros
-            </Text>
-            <Slider
-              style={{ width: '100%', height: 40 }}
-              onPressIn={handleRadiusPressIn}
-              onPressOut={handleRadiusPressOut}
-              panResponder={panResponder.panHandlers}
-              minimumTrackTintColor="#fff"
-              maximumTrackTintColor="#d1d5db"
-              thumbTintColor="#fff"
-              step={10}
-              minimumValue={1000}
-              maximumValue={10000}
-              value={radius}
-              onValueChange={setRadius}
-              thumbStyle={styles.sliderThumb}
-              trackStyle={styles.sliderTrack}
-            />
+            <Ionicons name={showRadiusMenu ? 'close' : 'options'} size={28} color="#fff" />
           </LinearGradient>
-        </View>
-      
-
+        </TouchableOpacity>
+      </View>
+    
       {/* Botão flutuante para criar evento */}
       <View style={styles.fabContainer}>
         <TouchableOpacity 
@@ -709,6 +685,65 @@ const styles = StyleSheet.create({
     marginTop: -25,
     zIndex: 100,
   },
+  radiusMenuContainer: {
+    position: 'absolute',
+    bottom: 80,
+    left: 20,
+    zIndex: 20,
+    alignItems: 'flex-start',
+  },
+  radiusOptionsPanel: {
+    marginBottom: 12,
+    width: 160,
+    borderRadius: 18,
+    backgroundColor: 'rgba(17, 24, 39, 0.92)',
+    padding: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.24,
+    shadowRadius: 14,
+    elevation: 12,
+  },
+  radiusOptionsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  radiusOptionsTitle: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  radiusCloseButton: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: 'rgba(124, 58, 237, 0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radiusOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginBottom: 8,
+  },
+  radiusOptionActive: {
+    backgroundColor: '#ffffff',
+  },
+  radiusOptionText: {
+    color: '#e5e7eb',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  radiusOptionTextActive: {
+    color: '#4c1d95',
+  },
   sliderThumb: {
     width: 20,
     height: 20,
@@ -723,10 +758,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#d1d5db',
   },
   radiusButton: {
-    position: 'absolute',
-    bottom: 80,
-    left: 20,
-    zIndex: 10,
+    zIndex: 21,
   },
   radiusButtonGradient: {
     width: 50,

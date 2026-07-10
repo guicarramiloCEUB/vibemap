@@ -5,12 +5,14 @@ import AuthLayout from '../components/AuthLayout';
 import AuthInput from '../components/AuthInput';
 import AuthButton from '../components/AuthButton';
 import AuthService from '../services/auth';
+import { useStore } from '../stores';
 
 export default function RegisterScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
+  const { userStore } = useStore();
 
   const handleRegister = async () => {
     if (!nome || !email || !senha) {
@@ -25,6 +27,11 @@ export default function RegisterScreen({ navigation }) {
       if (result.success) {
         console.log('✅ Registro bem-sucedido!');
         console.log('🔐 Access Token:', result.tokens.access.substring(0, 20) + '...');
+        try {
+          await userStore.fetchUserProfile();
+        } catch (profileError) {
+          console.warn('⚠️ Não foi possível carregar o perfil logo após o registro:', profileError);
+        }
         navigation.dispatch(
           CommonActions.reset({
             index: 0,

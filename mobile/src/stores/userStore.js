@@ -6,6 +6,16 @@ class UserStore {
   loading = false;
   error = null;
 
+  clearStore = () => {
+    this.userProfile = null;
+    this.loading = false;
+    this.error = null;
+  }
+
+  newStore = () => {
+    this.clearStore();
+  }
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -29,4 +39,23 @@ class UserStore {
         this.loading = false;
     }
   });
+  updateUserProfile = flow(function* (updatedData) {
+    this.loading = true;
+    this.error = null;
+
+    try {
+      const updatedUser = yield AuthService.updateUser(updatedData);
+      this.userProfile = updatedUser;
+      return updatedUser;
+    }
+    catch (error) {
+      this.error = error.message;
+      console.error('Erro ao atualizar perfil do usuário:', error);
+      throw error;
+    } finally {
+      this.loading = false;
+    }
+  });
 }
+export default UserStore;
+export const userStore = new UserStore();

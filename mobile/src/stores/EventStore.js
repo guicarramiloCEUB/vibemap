@@ -105,4 +105,5 @@ class EventStore {
 }
 
 // Singleton instance
+export default EventStore;
 export const eventStore = new EventStore();
