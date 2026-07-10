@@ -25,7 +25,7 @@ const getApiUrl = () => {
   } else if (Platform.OS === 'android') {
     // Para Android Emulator, tentar com IP da máquina host
     // ALTERAR para o IP da sua máquina (descubra com: hostname -I)
-    url = 'http://10.177.84.108:8000/api';
+    url = 'http://192.168.15.101:8000/api';
   }
   
   console.log('🌐 API URL:', url);

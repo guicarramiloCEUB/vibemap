@@ -130,6 +130,41 @@ export default observer(function MapScreen() {
     }
   }, [userLocation, radius]);
 
+  useEffect(() => {
+    // ATENÇÃO: Substitua 192.168.X.X pelo IP local do seu notebook rodando o Django
+    const ws = new WebSocket('ws://192.168.15.101:8000/ws/events/');
+
+    ws.onopen = () => {
+      console.log('✅ Conectado ao WebSocket do Django!');
+    };
+
+    ws.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+
+        if (data.type === 'event_created' && data.event) {
+          console.log('📢 Novo evento recebido via WS:', data.event.title);
+          // Injeta o evento diretamente no MobX
+          eventStore.addRealtimeEvent(data.event);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao processar mensagem do WS:', error);
+      }
+    };
+
+    ws.onerror = (e) => {
+      console.log('❌ Erro no WebSocket:', e.message);
+    };
+
+    ws.onclose = (e) => {
+      console.log('🔌 WebSocket desconectado:', e.code, e.reason);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []); // Array vazio para conectar apenas ao abrir o mapa
+
   const handleCreateEvent = () => {
     setShowModal(true);
   };

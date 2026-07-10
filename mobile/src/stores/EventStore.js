@@ -102,6 +102,14 @@ class EventStore {
   get allEvents() {
     return this.events;
   }
+
+  addRealtimeEvent(newEvent) {
+    // Verifica se o evento já existe na lista para evitar pinos duplicados no mapa
+    const exists = this.events.find(e => e.id === newEvent.id);
+    if (!exists) {
+      this.events.push(newEvent);
+    }
+  }
 }
 
 // Singleton instance
