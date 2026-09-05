@@ -8,6 +8,20 @@ import CreateEventModal from '../components/CreateEventModal';
 import LocationService from '../services/location';
 import { eventStore } from '../stores';
 
+// Calcula a distância em metros entre duas coordenadas
+const getDistanceInMeters = (lat1, lon1, lat2, lon2) => {
+  const R = 6371e3; // Raio da terra em metros
+  const p1 = lat1 * Math.PI/180;
+  const p2 = lat2 * Math.PI/180;
+  const dp = (lat2-lat1) * Math.PI/180;
+  const dl = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(dp/2) * Math.sin(dp/2) +
+            Math.cos(p1) * Math.cos(p2) *
+            Math.sin(dl/2) * Math.sin(dl/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
 // Configurar token do Mapbox
 Mapbox.setAccessToken('pk.eyJ1IjoiZ3VpY2FycmFtaWxvIiwiYSI6ImNtaXFhODNqZjBkcm4zY3B2bzFiZTkxNGEifQ.uMWfSP6tLfHIdBmDDN0d9g');
 
@@ -24,6 +38,8 @@ export default observer(function MapScreen() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartY, setDragStartY] = useState(0);
   const [dragCurrentY, setDragCurrentY] = useState(0);
+
+
 
   const radiusOptions = [
     { label: '3km', value: 3000 },
@@ -127,43 +143,68 @@ export default observer(function MapScreen() {
       ).catch(error => {
         console.error('Erro ao buscar eventos próximos:', error);
       });
+
+      eventStore.fetchPendingNearbyEvents(userLocation.latitude, userLocation.longitude, radius);
     }
   }, [userLocation, radius]);
 
-  useEffect(() => {
-    // ATENÇÃO: Substitua 192.168.X.X pelo IP local do seu notebook rodando o Django
-    const ws = new WebSocket('ws://192.168.15.101:8000/ws/events/');
+  const [eventToVote, setEventToVote] = useState(null);
 
-    ws.onopen = () => {
-      console.log('✅ Conectado ao WebSocket do Django!');
-    };
+  useEffect(() => {
+    const ws = new WebSocket('ws://192.168.15.101:8000/ws/events/'); // Lembre do seu IP
 
     ws.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
 
-        if (data.type === 'event_created' && data.event) {
-          console.log('📢 Novo evento recebido via WS:', data.event.title);
-          // Injeta o evento diretamente no MobX
+        if (data.type === 'pending_event_created' && data.event) {
+          console.log('🤫 Evento pendente recebido:', data.event.title);
+          eventStore.addPendingEvent(data.event);
+        } 
+        else if (data.type === 'event_approved' && data.event) {
+          console.log('📢 Evento APROVADO recebido:', data.event.title);
           eventStore.addRealtimeEvent(data.event);
+          eventStore.removePendingEvent(data.event.id); // Tira da fila de pendentes
         }
       } catch (error) {
-        console.error('❌ Erro ao processar mensagem do WS:', error);
+        console.error('Erro no WS:', error);
       }
     };
-
-    ws.onerror = (e) => {
-      console.log('❌ Erro no WebSocket:', e.message);
-    };
-
-    ws.onclose = (e) => {
-      console.log('🔌 WebSocket desconectado:', e.code, e.reason);
-    };
-
-    return () => {
-      ws.close();
-    };
+    return () => ws.close();
   }, []); // Array vazio para conectar apenas ao abrir o mapa
+
+  useEffect(() => {
+    if (!userLocation || eventStore.pendingEvents.length === 0 || eventToVote) return;
+
+    for (const pending of eventStore.pendingEvents) {
+      // GeoJSON padrão é [longitude, latitude]
+      console.log(pending)
+      const [lon, lat] = pending.location.coordinates; 
+      const distance = getDistanceInMeters(userLocation.latitude, userLocation.longitude, lat, lon);
+
+      if (distance <= 30) {
+        setEventToVote(pending); // Dispara o popup
+        break; // Mostra um por vez
+      }
+    }
+  }, [userLocation, eventStore.pendingEvents.length, eventToVote]);
+
+  const handleVote = async (isConfirmed) => {
+    if (!eventToVote) return;
+
+    try {
+      // Aqui você chamará o seu EventStore para bater na API do Django
+      await eventStore.voteOnEvent(eventToVote.id, isConfirmed);
+
+      console.log(`Votou ${isConfirmed ? 'SIM' : 'NÃO'} no evento ${eventToVote.title}`);
+    } catch (error) {
+      console.error("Erro ao votar:", error);
+    } finally {
+      // Remove da fila local para não perguntar de novo
+      eventStore.removePendingEvent(eventToVote.id);
+      setEventToVote(null);
+    }
+  };
 
   const handleCreateEvent = () => {
     setShowModal(true);
@@ -178,7 +219,7 @@ export default observer(function MapScreen() {
       console.log('🎯 Recentrando no usuário:', userLocation);
       cameraRef.current.setCamera({
         centerCoordinate: [userLocation.longitude, userLocation.latitude],
-        animationDuration: 300, // animação de 300ms
+        animationDuration: 500, // animação de 300ms
         zoomLevel: 16
       });
     }
@@ -513,6 +554,32 @@ export default observer(function MapScreen() {
         visible={showModal} 
         onClose={handleCloseModal}
       />
+      {eventToVote && (
+        <View style={[styles.radiusOptionsPanel, { position: 'absolute', top: 100, alignSelf: 'center', width: '80%', zIndex: 100 }]}>
+          <Text style={[styles.radiusOptionsTitle, { textAlign: 'center', marginBottom: 15, fontSize: 16 }]}>
+            Você está perto de: {eventToVote.title}
+          </Text>
+          <Text style={{ color: '#e5e7eb', textAlign: 'center', marginBottom: 20 }}>
+            Este evento realmente está acontecendo aqui?
+          </Text>
+
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+            <TouchableOpacity 
+              style={[styles.radiusCloseButton, { width: 60, height: 40, borderRadius: 8, backgroundColor: '#ef4444' }]}
+              onPress={() => handleVote(false)}
+            >
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>Não</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.radiusCloseButton, { width: 60, height: 40, borderRadius: 8, backgroundColor: '#10b981' }]}
+              onPress={() => handleVote(true)}
+            >
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>Sim</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 });

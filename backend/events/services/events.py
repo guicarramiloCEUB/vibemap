@@ -2,7 +2,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
-from events.models import Event
+from events.models import Event, EventVote
 from events.serializers.events import EventSerializer
 from django.utils import timezone
 from django.contrib.gis.geos import Point
@@ -35,12 +35,19 @@ class EventService:
             
             # Envia mensagem ao grupo "events"
             async_to_sync(channel_layer.group_send)(
-                'events',  # Nome do grupo
-                {
-                    'type': 'event_created',  # Chama o método event_created() no consumer
-                    'event': event_serializer.data,
+            'events',
+            {
+                'type': 'pending_event_created', # O frontend vai escutar isso
+                'event': {
+                    **event_serializer.data,
+                    'location': {
+                            'type': 'Point',
+                            'coordinates': [event.location.x, event.location.y] 
+                    },
+                    # Adicione as coordenadas aqui para o frontend calcular a distância
                 }
-            )
+            }
+        )
             print(f"📢 WebSocket broadcast: Novo evento '{event.title}' criado!")
         except Exception as e:
             print(f"⚠️ Erro ao fazer broadcast do evento: {e}")
@@ -48,7 +55,7 @@ class EventService:
         return event
     
     @staticmethod
-    def get_nearby_events(latitude, longitude, radius_meters):
+    def get_nearby_events(latitude, longitude, radius_meters, status='APPROVED'):
         """
         Buscar eventos dentro de um raio especificado usando PostGIS ST_DWithin
         
@@ -62,14 +69,55 @@ class EventService:
         """
         # Criar ponto de referência (GeoJSON format: [lng, lat])
         user_location = Point(longitude, latitude, srid=4326)
-        
-        # QuerySet com ST_DWithin (distância em metros)
+
+        # Filtra dinamicamente pelo status passado (PENDING ou APPROVED)
         events = Event.objects.filter(
-            location__distance_lte=(user_location, radius_meters)
+            location__distance_lte=(user_location, radius_meters),
+            #status=status
         ).annotate(
             distance=Distance('location', user_location)
-        ).order_by('distance').filter(
-            is_active=True
+        ).order_by('distance')
+
+        return events
+    
+    @staticmethod
+    def process_vote(user, event_id, is_confirmed):
+        event = Event.objects.filter(id=event_id).first()
+        if not event:
+            return None, "Evento não encontrado."
+        
+        vote, creates = EventVote.objects.update_or_create(
+            user=user,
+            event=event,
+            defaults={'is_confirmed': is_confirmed}
         )
         
-        return events
+        positive_votes = EventVote.objects.filter(event=event, is_confirmed=True).count()
+        negative_votes = EventVote.objects.filter(event=event, is_confirmed=False).count()
+
+        total_votes = positive_votes + negative_votes
+
+        if total_votes >= 3 and event.status == 'PENDING':
+            if positive_votes > negative_votes:
+                event.status = 'APPROVED'
+                event.save()
+
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    'events',
+                    {
+                        'type': 'event_approved',
+                        'event': {
+                            **EventSerializer(event).data,
+                            'location': {
+                                'type': 'Point',
+                                'coordinates': [event.location.x, event.location.y]
+                            }
+                        },
+                    }
+                )
+            return {'status': 'approved', 'message': 'Evento aprovado e publicado!'}
+        
+        return {'status': 'voted', 'positive_votes': positive_votes}
+
+

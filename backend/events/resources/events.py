@@ -35,9 +35,10 @@ class EventResources(viewsets.ViewSet):
         try:
             lat = float(request.query_params.get('lat'))
             lng = float(request.query_params.get('lng'))
-            radius = float(request.query_params.get('radius', 5000))  # 5km default
+            radius = float(request.query_params.get('radius', 5000))
+            status_event = request.query_params.get('status', 'APPROVED')  # 5km default
             
-            events = EventService.get_nearby_events(lat, lng, radius)
+            events = EventService.get_nearby_events(lat, lng, radius, status_event)
             serializer = EventSerializer(events, many=True)
             return Response(serializer.data)
         except (ValueError, TypeError) as e:
@@ -45,3 +46,13 @@ class EventResources(viewsets.ViewSet):
                 {'error': 'Parâmetros inválidos: lat, lng e radius devem ser números'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+    @transaction.atomic
+    @action(detail=False, methods=['post'], url_path='registrar_voto')
+    def register_vote(self, request):
+        event_id = request.data.get('event_id')
+        is_confirmed = request.data.get('is_confirmed')
+
+        result = EventService.process_vote(request.user, event_id, is_confirmed)
+
+        return Response(result, status=status.HTTP_200_OK)

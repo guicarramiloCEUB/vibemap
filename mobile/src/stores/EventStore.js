@@ -5,6 +5,7 @@ import EventTypeService from '../services/eventTypes';
 class EventStore {
   events = [];
   eventTypes = [];
+  pendingEvents = [];
   loading = false;
   loadingTypes = false;
   error = null;
@@ -104,12 +105,49 @@ class EventStore {
   }
 
   addRealtimeEvent(newEvent) {
-    // Verifica se o evento já existe na lista para evitar pinos duplicados no mapa
     const exists = this.events.find(e => e.id === newEvent.id);
     if (!exists) {
       this.events.push(newEvent);
     }
   }
+
+  addPendingEvent(event) {
+    const exists = this.pendingEvents.find(e => e.id === event.id);
+    if (!exists) {
+      this.pendingEvents.push(event);
+    }
+  }
+
+  removePendingEvent(eventId) {
+    this.pendingEvents = this.pendingEvents.filter(e => e.id !== eventId);
+  }
+
+  voteOnEvent = flow(function* (eventId, isConfirmed) {
+    try {
+      // 1. Remove da fila local imediatamente para fechar o popup na tela (Optimistic UI)
+      this.removePendingEvent(eventId);
+
+      // 2. Chama o serviço que faz a requisição para o backend
+      const response = yield EventService.voteEvent(eventId, isConfirmed);
+      return response;
+    } catch (error) {
+      console.error('Erro ao votar no evento:', error);
+      // Se a API falhar, você pode optar por devolver o evento para a fila aqui
+      throw error;
+    }
+  });
+
+  fetchPendingNearbyEvents = flow(function* (latitude, longitude, radius = 5000) {
+    try {
+      const pendingEvents = yield EventService.getPendingNearbyEvents(latitude, longitude, radius);
+
+      // Substitui a lista atual pelos pendentes que vieram do banco
+      this.pendingEvents = pendingEvents; 
+      return pendingEvents;
+    } catch (error) {
+      console.error('Erro ao buscar eventos pendentes na inicialização:', error);
+    }
+  });
 }
 
 // Singleton instance

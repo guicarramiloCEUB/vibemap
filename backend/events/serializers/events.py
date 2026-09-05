@@ -12,7 +12,7 @@ class EventSerializer(GeoModelSerializer):
         fields = (
             'id', 'title', 'description', 'location', 'location_name',
             'starts_at', 'ends_at', 'max_participants',
-            'is_public', 'requires_approval', 'is_active', 'event_type', 'creator'
+            'is_public', 'requires_approval', 'status', 'is_active', 'event_type', 'creator'
         )
         read_only_fields = ('id', 'starts_at', 'creator', 'created_at', 'updated_at')
 

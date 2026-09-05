@@ -50,6 +50,39 @@ const EventService = {
       throw error;
     }
   },
+  voteEvent: async (eventId, isConfirmed) => {
+    try {
+      const payload = {
+        event_id: eventId,
+        is_confirmed: isConfirmed
+      };
+
+      // Substitua pela sua URL base e garanta que o token JWT está no header
+      const response = await api.post('/events/registrar_voto/', payload);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao registrar voto:', error);
+      throw error;
+    }
+  },
+
+  async getPendingNearbyEvents(latitude, longitude, radius = 5000) {
+    try {
+      // Sugestão: usar a mesma rota, mas passando o status como filtro
+      const response = await api.get('/events/nearby/', {
+        params: {
+          lat: latitude,
+          lng: longitude,
+          radius: radius,
+          status: 'PENDING' // O backend precisa filtrar por isso
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar eventos pendentes próximos:', error);
+      throw error;
+    }
+  },
 };
 
 export default EventService;

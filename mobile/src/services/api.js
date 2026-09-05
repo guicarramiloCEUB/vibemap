@@ -53,6 +53,19 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
+      const publicAuthPaths = [
+        '/users/login/',
+        '/users/register_user/',
+        '/users/register/',
+        '/users/token/refresh/',
+      ];
+      const requestUrl = config.url ?? '';
+      const isPublicAuthRequest = publicAuthPaths.some((path) => requestUrl.includes(path));
+
+      if (isPublicAuthRequest) {
+        return config;
+      }
+
       // Buscar token do SecureStore
       const token = await SecureStore.getItemAsync('access_token');
       

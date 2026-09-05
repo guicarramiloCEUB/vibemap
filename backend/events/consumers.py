@@ -85,3 +85,15 @@ class EventConsumer(AsyncWebsocketConsumer):
             print(f"✅ Mensagem enviada com sucesso!")
         except Exception as e:
             print(f"❌ Erro ao enviar mensagem: {e}")
+
+    async def event_approved(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'event_approved',
+            'event': event['event']
+        }))
+
+    async def pending_event_created(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'pending_event_created',
+            'event': event['event']
+        }))

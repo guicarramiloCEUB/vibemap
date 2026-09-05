@@ -13,6 +13,12 @@ class EventType(models.Model):
 
 
 class Event(models.Model):
+
+    STATUS_CHOICES = [
+        ('PENDING', 'Pendente'),
+        ('APPROVED', 'Aprovado'),
+        ('REJECTED', 'Rejeitado'),
+    ]
     """Event model"""
     # Basic info
     title = models.CharField(max_length=255)
@@ -32,6 +38,11 @@ class Event(models.Model):
     # Status
     is_public = models.BooleanField(default=True)
     requires_approval = models.BooleanField(default=False)
+    status = models.CharField(
+        max_length=10, 
+        choices=STATUS_CHOICES, 
+        default='PENDING'
+    )
     is_active = models.BooleanField(default=True)
     
     # Relations
@@ -55,3 +66,24 @@ class Event(models.Model):
 
     def __str__(self):
         return f"{self.title}"
+    
+class EventVote(models.Model):
+    """Model to represent a user's vote on an event"""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='event_votes'
+    )
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name='votes'
+    )
+    is_confirmed = models.BooleanField()  # True for upvote, False for downvote
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'event')  # Ensure a user can only vote once per event
+
+    def __str__(self):
+        return f"{self.user} voted {'up' if self.vote else 'down'} on {self.event}"
